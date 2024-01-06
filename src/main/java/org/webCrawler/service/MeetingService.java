@@ -23,10 +23,10 @@ public class MeetingService {
         this.webUrl += String.format("&FromDate=%s&ToDate=%s", date, date);
     }
 
-    public List<PriorityOrBuyShare> getPriorityOrBuyShare() throws Exception {
+    public List<PriorityOrBuyShare> getPriorityOrBuyShare(String letterType) throws Exception {
         PriorityOrBuyShare priorityOrBuyShare = new PriorityOrBuyShare();
         List<PriorityOrBuyShare> capitalIncreaseDto = new ArrayList<>();
-        this.webUrl += String.format("&LetterType=%s", "25");
+        this.webUrl += String.format("&LetterType=%s", letterType);
         WebDriver webDriverMain = new Selenium().webDriver();
         webDriverMain.get(webUrl);
         List<String> links = new ArrayList<>();
@@ -41,8 +41,10 @@ public class MeetingService {
             webDriver.get(link);
             WebElement span = getWebElementById(webDriver, "lblLicenseDesc");
             if (!CommonUtils.isNull(span)) {
-                priorityOrBuyShare.setLicenseNumber(span.getText().split("مورخ")[0].trim());
-                priorityOrBuyShare.setAdvertisementDate(span.getText().split("مورخ")[1].replace("و", "").trim());
+                if (!CommonUtils.isNull(span.getText())) {
+                    priorityOrBuyShare.setLicenseNumber(span.getText().split("مورخ")[0].trim());
+                    priorityOrBuyShare.setAdvertisementDate(span.getText().split("مورخ")[1].replace("و", "").trim());
+                }
             }
             span = getWebElementById(webDriver, "lblLastExtraAssembly");
             if (!CommonUtils.isNull(span)) {
@@ -76,6 +78,11 @@ public class MeetingService {
             span = getWebElementById(webDriver, "txbEndDate");
             if (!CommonUtils.isNull(span)) {
                 priorityOrBuyShare.setEndDate(span.getText().trim());
+            }
+
+            span = getWebElementById(webDriver, "txbDate");
+            if (!CommonUtils.isNull(span)) {
+                priorityOrBuyShare.setConfirmDate(span.getText().trim());
             }
 
             capitalIncreaseDto.add(priorityOrBuyShare);
@@ -182,10 +189,10 @@ public class MeetingService {
         return decisionsBoards;
     }
 
-    public List<DecisionDto> getDecisionList() {
+    public List<DecisionDto> getDecisionList(String letterType) {
         DecisionDto decisionDto = new DecisionDto();
         List<DecisionDto> decisionDtos = new ArrayList<>();
-        this.webUrl += String.format("&LetterType=%s", "20");
+        this.webUrl += String.format("&LetterType=%s", letterType);
         WebDriver webDriverMain = new Selenium().webDriver();
         webDriverMain.get(webUrl);
         List<String> links = new ArrayList<>();
@@ -231,10 +238,10 @@ public class MeetingService {
         return assemblyDecisionsList;
     }
 
-    public List<ExtraAssemblyDto> getExtraAssemblyList() {
+    public List<ExtraAssemblyDto> getExtraAssemblyList(String letterType) {
         List<ExtraAssemblyDto> extraAssemblyDtos = new ArrayList<>();
         ExtraAssemblyDto extraAssemblyDto = new ExtraAssemblyDto();
-        this.webUrl += String.format("&LetterType=%s", "22");
+        this.webUrl += String.format("&LetterType=%s", letterType);
         WebDriver webDriverMain = new Selenium().webDriver();
         webDriverMain.get(webUrl);
         List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));

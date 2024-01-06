@@ -20,4 +20,5 @@ public class PriorityOrBuyShare {
     private String type;
     private String startDate;
     private String endDate;
+    private String confirmDate;
 }

@@ -18,17 +18,24 @@ import java.util.List;
 @RestController
 public class API {
 
-    @GetMapping(path = "/api/extraAssembly")
-    public List<ExtraAssemblyDto> getExtraAssemblyList(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
+    @GetMapping(path = "/api/extraAssemblyShareholderMeeting")
+    public List<ExtraAssemblyDto> getExtraAssemblyShareholderMeeting(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
         MeetingService meetingService1 = new MeetingService(startDate);
-        List<ExtraAssemblyDto> extraAssemblyDtos = meetingService1.getExtraAssemblyList();
+        List<ExtraAssemblyDto> extraAssemblyDtos = meetingService1.getExtraAssemblyList("22");
         return extraAssemblyDtos;
     }
 
-    @GetMapping(path = "/api/decision")
-    public List<DecisionDto> getDecisionList(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
+    @GetMapping(path = "/api/summaryExtraAssemblyShareholderMeeting")
+    public List<ExtraAssemblyDto> getSummaryExtraAssemblyShareholderMeeting(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
         MeetingService meetingService1 = new MeetingService(startDate);
-        List<DecisionDto> decisionDtos = meetingService1.getDecisionList();
+        List<ExtraAssemblyDto> extraAssemblyDtos = meetingService1.getExtraAssemblyList("2222");
+        return extraAssemblyDtos;
+    }
+
+    @GetMapping(path = "/api/annualSaheholderMeeting")
+    public List<DecisionDto> getAnnualSaheholderMeeting(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
+        MeetingService meetingService1 = new MeetingService(startDate);
+        List<DecisionDto> decisionDtos = meetingService1.getDecisionList("20");
         return decisionDtos;
     }
 
@@ -42,7 +49,41 @@ public class API {
     @GetMapping(path = "/api/priorityOrBuyShare")
     public List<PriorityOrBuyShare> getPriorityOrBuyShare(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
         MeetingService meetingService1 = new MeetingService(startDate);
-        List<PriorityOrBuyShare> priorityOrBuyShares = meetingService1.getPriorityOrBuyShare();
+        List<PriorityOrBuyShare> priorityOrBuyShares = meetingService1.getPriorityOrBuyShare("25");
         return priorityOrBuyShares;
+    }
+
+    @GetMapping(path = "/api/postulateDiscussionShareholderMeeting")
+    public List<PriorityOrBuyShare> postulateDiscussionShareholderMeeting(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
+        MeetingService meetingService1 = new MeetingService(startDate);
+        List<PriorityOrBuyShare> priorityOrBuyShares = meetingService1.getPriorityOrBuyShare("27");
+        return priorityOrBuyShares;
+    }
+    @GetMapping(path = "/api/registerCapitalIncrease")
+    public List<PriorityOrBuyShare> getRegisterCapitalIncrease(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
+        MeetingService meetingService1 = new MeetingService(startDate);
+        List<PriorityOrBuyShare> priorityOrBuyShares = meetingService1.getPriorityOrBuyShare("28");
+        return priorityOrBuyShares;
+    }
+
+    @GetMapping(path = "/api/extraordinaryAnnualShareholderMeeting")
+    public List<DecisionDto> getExtraordinaryAnnualShareholderMeeting(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
+        MeetingService meetingService1 = new MeetingService(startDate);
+        List<DecisionDto> decisionDtos = meetingService1.getDecisionList("21");
+        return decisionDtos;
+    }
+
+    @GetMapping(path = "/api/summaryAnnualShareholderMeeting")
+    public List<DecisionDto> getSummaryAnnualShareholderMeeting(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
+        MeetingService meetingService1 = new MeetingService(startDate);
+        List<DecisionDto> decisionDtos = meetingService1.getDecisionList("2020");
+        return decisionDtos;
+    }
+
+    @GetMapping(path = "/api/summaryExtraordinaryAnnualShareholderMeeting")
+    public List<DecisionDto> getSummaryExtraordinaryAnnualShareholderMeeting(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
+        MeetingService meetingService1 = new MeetingService(startDate);
+        List<DecisionDto> decisionDtos = meetingService1.getDecisionList("2121");
+        return decisionDtos;
     }
 }
