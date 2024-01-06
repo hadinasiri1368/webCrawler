@@ -23,6 +23,68 @@ public class MeetingService {
         this.webUrl += String.format("&FromDate=%s&ToDate=%s", date, date);
     }
 
+    public List<PriorityOrBuyShare> getPriorityOrBuyShare() throws Exception {
+        PriorityOrBuyShare priorityOrBuyShare = new PriorityOrBuyShare();
+        List<PriorityOrBuyShare> capitalIncreaseDto = new ArrayList<>();
+        this.webUrl += String.format("&LetterType=%s", "25");
+        WebDriver webDriverMain = new Selenium().webDriver();
+        webDriverMain.get(webUrl);
+        List<String> links = new ArrayList<>();
+        List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
+        for (WebElement webElement : elements) {
+            links.add(webElement.getDomProperty("href"));
+        }
+        for (String link : links) {
+            priorityOrBuyShare = new PriorityOrBuyShare();
+            priorityOrBuyShare.setLink(link);
+            WebDriver webDriver = new Selenium().webDriver();
+            webDriver.get(link);
+            WebElement span = getWebElementById(webDriver, "lblLicenseDesc");
+            if (!CommonUtils.isNull(span)) {
+                priorityOrBuyShare.setLicenseNumber(span.getText().split("مورخ")[0].trim());
+                priorityOrBuyShare.setAdvertisementDate(span.getText().split("مورخ")[1].replace("و", "").trim());
+            }
+            span = getWebElementById(webDriver, "lblLastExtraAssembly");
+            if (!CommonUtils.isNull(span)) {
+                priorityOrBuyShare.setMeetingDate(span.getText().trim());
+            }
+
+            span = getWebElementById(webDriver, "lblLastCapitalIncreaseSession");
+            if (!CommonUtils.isNull(span)) {
+                priorityOrBuyShare.setProceedingsDate(span.getText().trim());
+            }
+
+            span = getWebElementById(webDriver, "lblPreviousCapital");
+            if (!CommonUtils.isNull(span)) {
+                priorityOrBuyShare.setFromAmount(CommonUtils.longValue(span.getText().trim().replace(",", "")));
+            }
+            span = getWebElementById(webDriver, "lblNewCapital");
+            if (!CommonUtils.isNull(span)) {
+                priorityOrBuyShare.setToAmount(CommonUtils.longValue(span.getText().trim().replace(",", "")));
+            }
+
+            span = getWebElementById(webDriver, "lblCashIncomingCaption1");
+            if (!CommonUtils.isNull(span)) {
+                priorityOrBuyShare.setType(span.getText().trim());
+            }
+
+            span = getWebElementById(webDriver, "txbStartDate");
+            if (!CommonUtils.isNull(span)) {
+                priorityOrBuyShare.setStartDate(span.getText().trim());
+            }
+
+            span = getWebElementById(webDriver, "txbEndDate");
+            if (!CommonUtils.isNull(span)) {
+                priorityOrBuyShare.setEndDate(span.getText().trim());
+            }
+
+            capitalIncreaseDto.add(priorityOrBuyShare);
+            webDriver.close();
+        }
+        webDriverMain.close();
+        return capitalIncreaseDto;
+    }
+
     public List<CapitalIncreaseDto> getCapitalIncrease() {
         CapitalIncreaseDto capitalIncreaseDto = new CapitalIncreaseDto();
         List<CapitalIncreaseDto> capitalIncreaseDtos = new ArrayList<>();

@@ -1,7 +1,12 @@
 package org.webCrawler.common;
 
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
 import java.io.File;
 import java.net.URL;
+import java.util.List;
 
 public class CommonUtils {
     private static final String CHROMEDRIVER_EXE = "D:\\java\\webCrawler\\chromedriver-win64\\chromedriver.exe";
@@ -66,5 +71,27 @@ public class CommonUtils {
             } catch (NumberFormatException e) {
                 return null;
             }
+    }
+
+    public static WebElement getById(WebDriver webDriver, String type, String id) {
+        List<WebElement> list = webDriver.findElements(By.tagName(type));
+        for (WebElement webElement : list) {
+            if (webElement.getDomProperty("id").equals(id))
+                return webElement;
+            WebElement element = getById(webElement, type, id);
+            if (!CommonUtils.isNull(element))
+                return element;
+        }
+        return null;
+    }
+
+    public static WebElement getById(WebElement webElement, String type, String id) {
+        List<WebElement> list = webElement.findElements(By.tagName(type));
+        for (WebElement element : list) {
+            if (element.getDomProperty("id").indexOf(id) != -1)
+                return element;
+            return getById(element, type, id);
+        }
+        return null;
     }
 }

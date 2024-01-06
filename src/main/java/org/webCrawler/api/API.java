@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.webCrawler.dto.CapitalIncreaseDto;
 import org.webCrawler.dto.DecisionDto;
 import org.webCrawler.dto.ExtraAssemblyDto;
+import org.webCrawler.dto.PriorityOrBuyShare;
 import org.webCrawler.service.MeetingService;
 
 import java.util.List;
@@ -36,5 +37,12 @@ public class API {
         MeetingService meetingService1 = new MeetingService(startDate);
         List<CapitalIncreaseDto> capitalIncreaseDtos = meetingService1.getCapitalIncrease();
         return capitalIncreaseDtos;
+    }
+
+    @GetMapping(path = "/api/priorityOrBuyShare")
+    public List<PriorityOrBuyShare> getPriorityOrBuyShare(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
+        MeetingService meetingService1 = new MeetingService(startDate);
+        List<PriorityOrBuyShare> priorityOrBuyShares = meetingService1.getPriorityOrBuyShare();
+        return priorityOrBuyShares;
     }
 }
