@@ -7,11 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.webCrawler.common.CommonUtils;
 import org.webCrawler.config.Selenium;
-import org.webCrawler.dto.DecisionsMade;
-import org.webCrawler.dto.ExtraAssemblyDto;
-import org.webCrawler.dto.PeoplePrsentInMeeting;
+import org.webCrawler.dto.*;
 
 import javax.lang.model.element.Element;
+import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,19 +23,68 @@ public class MeetingService {
         this.webUrl += String.format("&FromDate=%s&ToDate=%s", date, date);
     }
 
+    public List<DecisionDto> getDecisionList() {
+        DecisionDto decisionDto = new DecisionDto();
+        List<DecisionDto> decisionDtos = new ArrayList<>();
+        this.webUrl += String.format("&LetterType=%s", "20");
+        WebDriver webDriverMain = new Selenium().webDriver();
+        webDriverMain.get(webUrl);
+        List<String> links = new ArrayList<>();
+        List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
+        for (WebElement webElement : elements) {
+            links.add(webElement.getDomProperty("href"));
+        }
+        for (String link : links) {
+            decisionDto = new DecisionDto();
+            decisionDto.setLink(link);
+            WebDriver webDriver = new Selenium().webDriver();
+            webDriver.get(link);
+            WebElement table = getWebElementById(webDriver, "ucAssemblyPRetainedEarning_grdAssemblyProportionedRetainedEarning");
+            if (!CommonUtils.isNull(table)) {
+                decisionDto.setAssemblyDecisions(getAssemblyDecisions(table));
+            }
+            decisionDtos.add(decisionDto);
+            webDriver.close();
+        }
+        webDriverMain.close();
+        return decisionDtos;
+    }
+
+    private List<AssemblyDecisions> getAssemblyDecisions(WebElement table) {
+        AssemblyDecisions assemblyDecisions = new AssemblyDecisions();
+        List<AssemblyDecisions> assemblyDecisionsList = new ArrayList<>();
+        WebElement tbody = table.findElement(By.tagName("tbody"));
+        List<WebElement> rows = tbody.findElements(By.tagName("tr"));
+        for (int j = 2; j < rows.size(); j++) {
+            List<WebElement> columns = rows.get(j).findElements(By.tagName("td"));
+            assemblyDecisions = new AssemblyDecisions();
+            for (int i = 1; i < columns.size(); i++) {
+                if (i == 1) {
+                    WebElement span = columns.get(i).findElement(By.tagName("span"));
+                    assemblyDecisions.setDescription(span.getText().trim());
+                } else if (i == 2) {
+                    WebElement input = columns.get(i).findElement(By.tagName("input"));
+                    assemblyDecisions.setAmount(CommonUtils.longValue(input.getDomProperty("value").trim().replace(",", "")));
+                }
+            }
+            assemblyDecisionsList.add(assemblyDecisions);
+        }
+        return assemblyDecisionsList;
+    }
+
     public List<ExtraAssemblyDto> getExtraAssemblyList() {
         List<ExtraAssemblyDto> extraAssemblyDtos = new ArrayList<>();
         ExtraAssemblyDto extraAssemblyDto = new ExtraAssemblyDto();
         this.webUrl += String.format("&LetterType=%s", "22");
-        WebDriver webDriver = new Selenium().webDriver();
-        webDriver.get(webUrl);
-        List<WebElement> elements = webDriver.findElements(By.className("letter-title"));
+        WebDriver webDriverMain = new Selenium().webDriver();
+        webDriverMain.get(webUrl);
+        List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
         List<String> stringList = new ArrayList<>();
         for (WebElement webElement : elements) {
             stringList.add(webElement.getDomProperty("href"));
         }
         for (String ietm : stringList) {
-            webDriver = new Selenium().webDriver();
+            WebDriver webDriver = new Selenium().webDriver();
             extraAssemblyDto = new ExtraAssemblyDto();
             extraAssemblyDto.setLink(ietm);
             System.out.println(ietm);
@@ -52,8 +100,9 @@ public class MeetingService {
             if (!CommonUtils.isNull(table))
                 extraAssemblyDto.setDecisionsMades(getDecisionsMades(table));
             extraAssemblyDtos.add(extraAssemblyDto);
-
+            webDriver.close();
         }
+        webDriverMain.close();
         return extraAssemblyDtos;
     }
 
