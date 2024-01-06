@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.webCrawler.dto.CapitalIncreaseDto;
 import org.webCrawler.dto.DecisionDto;
 import org.webCrawler.dto.ExtraAssemblyDto;
 import org.webCrawler.service.MeetingService;
@@ -28,5 +29,12 @@ public class API {
         MeetingService meetingService1 = new MeetingService(startDate);
         List<DecisionDto> decisionDtos = meetingService1.getDecisionList();
         return decisionDtos;
+    }
+
+    @GetMapping(path = "/api/capitalIncrease")
+    public List<CapitalIncreaseDto> getCapitalIncrease(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
+        MeetingService meetingService1 = new MeetingService(startDate);
+        List<CapitalIncreaseDto> capitalIncreaseDtos = meetingService1.getCapitalIncrease();
+        return capitalIncreaseDtos;
     }
 }

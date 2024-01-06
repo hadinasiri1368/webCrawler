@@ -23,6 +23,103 @@ public class MeetingService {
         this.webUrl += String.format("&FromDate=%s&ToDate=%s", date, date);
     }
 
+    public List<CapitalIncreaseDto> getCapitalIncrease() {
+        CapitalIncreaseDto capitalIncreaseDto = new CapitalIncreaseDto();
+        List<CapitalIncreaseDto> capitalIncreaseDtos = new ArrayList<>();
+        this.webUrl += String.format("&LetterType=%s", "24");
+        WebDriver webDriverMain = new Selenium().webDriver();
+        webDriverMain.get(webUrl);
+        List<String> links = new ArrayList<>();
+        List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
+        for (WebElement webElement : elements) {
+            links.add(webElement.getDomProperty("href"));
+        }
+        for (String link : links) {
+            capitalIncreaseDto = new CapitalIncreaseDto();
+            capitalIncreaseDto.setLink(link);
+            WebDriver webDriver = new Selenium().webDriver();
+            webDriver.get(link);
+            WebElement table = getWebElementById(webDriver, "tblCapitalIncrease");
+            if (!CommonUtils.isNull(table)) {
+                capitalIncreaseDto.setDecisionsBoards(getDecisionsBoard(table));
+            }
+            capitalIncreaseDtos.add(capitalIncreaseDto);
+            webDriver.close();
+        }
+        webDriverMain.close();
+        return capitalIncreaseDtos;
+    }
+
+    private List<DecisionsBoard> getDecisionsBoard(WebElement table) {
+        DecisionsBoard decisionsBoard = new DecisionsBoard();
+        List<DecisionsBoard> decisionsBoards = new ArrayList<>();
+        WebElement tbody = table.findElement(By.tagName("tbody"));
+        List<WebElement> rows = tbody.findElements(By.tagName("tr"));
+        for (int j = 2; j < rows.size(); j++) {
+            List<WebElement> columns = rows.get(j).findElements(By.tagName("td"));
+            decisionsBoard = new DecisionsBoard();
+            for (int i = 0; i < columns.size(); i++) {
+                if (i == 0) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    WebElement input = getWebElement(span, "input");
+                    decisionsBoard.setUnitCount(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
+                } else if (i == 1) {
+                    WebElement input = getWebElement(columns.get(i), "input");
+                    decisionsBoard.setNominalValue(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
+                } else if (i == 2) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    WebElement input = getWebElement(span, "input");
+                    decisionsBoard.setAmount(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
+                } else if (i == 3) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    span = getWebElement(span, "span");
+                    decisionsBoard.setCash(CommonUtils.longValue(span.getText().replace(",", "").trim()));
+                } else if (i == 4) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    span = getWebElement(span, "span");
+                    decisionsBoard.setAccumulatedProfit(CommonUtils.longValue(span.getText().replace(",", "").trim()));
+                } else if (i == 5) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    span = getWebElement(span, "span");
+                    decisionsBoard.setSavedUp(CommonUtils.longValue(span.getText().replace(",", "").trim()));
+                } else if (i == 6) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    span = getWebElement(span, "span");
+                    decisionsBoard.setAsset(CommonUtils.longValue(span.getText().replace(",", "").trim()));
+                } else if (i == 7) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    span = getWebElement(span, "span");
+                    decisionsBoard.setStock(CommonUtils.longValue(span.getText().replace(",", "").trim()));
+                } else if (i == 8) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    span = getWebElement(span, "span");
+                    decisionsBoard.setEntryCash(CommonUtils.longValue(span.getText().replace(",", "").trim()));
+                } else if (i == 9) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    WebElement input = getWebElement(span, "input");
+                    decisionsBoard.setCapitalIncrease(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
+                } else if (i == 10) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    WebElement input = getWebElement(span, "input");
+                    decisionsBoard.setPercentIncrease(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
+                } else if (i == 11) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    WebElement input = getWebElement(span, "input");
+                    decisionsBoard.setUnitCountNotRegistered(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
+                } else if (i == 12) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    WebElement input = getWebElement(span, "input");
+                    decisionsBoard.setNominalValueNotRegistered(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
+                } else if (i == 13) {
+                    WebElement input = getWebElement(columns.get(i), "input");
+                    decisionsBoard.setAmountNotRegistered(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
+                }
+            }
+            decisionsBoards.add(decisionsBoard);
+        }
+        return decisionsBoards;
+    }
+
     public List<DecisionDto> getDecisionList() {
         DecisionDto decisionDto = new DecisionDto();
         List<DecisionDto> decisionDtos = new ArrayList<>();

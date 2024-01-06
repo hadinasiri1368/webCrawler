@@ -5,13 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-public class DecisionsMade {
+public class DecisionsBoard {
     private Long unitCount;
     private Long nominalValue;
     private Long amount;
@@ -23,5 +21,7 @@ public class DecisionsMade {
     private Long entryCash;
     private Long capitalIncrease;
     private Long percentIncrease;
-    private String approveType;
+    private Long unitCountNotRegistered;
+    private Long nominalValueNotRegistered;
+    private Long amountNotRegistered;
 }
