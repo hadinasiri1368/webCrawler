@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.webCrawler.dto.CapitalIncreaseDto;
-import org.webCrawler.dto.DecisionDto;
-import org.webCrawler.dto.ExtraAssemblyDto;
-import org.webCrawler.dto.PriorityOrBuyShare;
+import org.webCrawler.dto.*;
 import org.webCrawler.service.MeetingService;
 
 import java.util.List;
@@ -59,6 +56,7 @@ public class API {
         List<PriorityOrBuyShare> priorityOrBuyShares = meetingService1.getPriorityOrBuyShare("27");
         return priorityOrBuyShares;
     }
+
     @GetMapping(path = "/api/registerCapitalIncrease")
     public List<PriorityOrBuyShare> getRegisterCapitalIncrease(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
         MeetingService meetingService1 = new MeetingService(startDate);
@@ -86,4 +84,12 @@ public class API {
         List<DecisionDto> decisionDtos = meetingService1.getDecisionList("2121");
         return decisionDtos;
     }
-}
+
+    @GetMapping(path = "/api/InterimStatementDto")
+    public List<InterimStatementDto> getInterimStatementDto(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
+        MeetingService meetingService1 = new MeetingService(startDate);
+        List<InterimStatementDto> interimStatementDtos = meetingService1.getInterimStatementDto("6");
+        return interimStatementDtos;
+    }
+    }
+

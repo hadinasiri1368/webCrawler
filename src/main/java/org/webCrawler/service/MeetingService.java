@@ -3,6 +3,7 @@ package org.webCrawler.service;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.webCrawler.common.CommonUtils;
@@ -14,6 +15,8 @@ import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.List;
 
+//وزاگرس
+//تملت
 public class MeetingService {
     private String date;
     private String webUrl = "https://www.codal.ir/ReportList.aspx?search&AuditorRef=-1&PageNumber=1&Audited&NotAudited&IsNotAudited=false&Childs&Mains&Publisher=false&CompanyState=-1&Category=-1&CompanyType=-1&Consolidatable&NotConsolidatable";
@@ -21,6 +24,292 @@ public class MeetingService {
     public MeetingService(String date) {
         this.date = date;
         this.webUrl += String.format("&FromDate=%s&ToDate=%s", date, date);
+    }
+
+    public List<InterimStatementDto> getInterimStatementDto(String letterType) throws Exception {
+        InterimStatementDto interimStatementDto = new InterimStatementDto();
+        List<InterimStatementDto> interimStatementDtos = new ArrayList<>();
+        this.webUrl += String.format("&LetterType=%s", letterType);
+        WebDriver webDriverMain = new Selenium().webDriver();
+        webDriverMain.get(webUrl);
+        List<String> links = new ArrayList<>();
+        List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
+        for (WebElement webElement : elements) {
+            links.add(webElement.getDomProperty("href"));
+        }
+        for (String link : links) {
+            interimStatementDto = new InterimStatementDto();
+            interimStatementDto.setLink(link);
+            WebDriver webDriver = new Selenium().webDriver();
+            webDriver.get(link);
+
+            WebElement span = getWebElementById(webDriver, "ctl00_txbCompanyName");
+            if (!CommonUtils.isNull(span))
+                interimStatementDto.setCompany(span.getText().trim());
+
+            span = getWebElementById(webDriver, "ctl00_txbSymbol");
+            if (!CommonUtils.isNull(span))
+                interimStatementDto.setBourseAccount(span.getText().trim());
+
+            span = getWebElementById(webDriver, "ctl00_lblISIC");
+            if (!CommonUtils.isNull(span))
+                interimStatementDto.setISICCode(span.getText().trim());
+
+            span = getWebElementById(webDriver, "ctl00_lblYearEndToDate");
+            span = span.findElement(By.tagName("bdo"));
+            if (!CommonUtils.isNull(span))
+                interimStatementDto.setDate(span.getText().trim());
+
+            span = getWebElementById(webDriver, "ctl00_lblListedCapital");
+            if (!CommonUtils.isNull(span))
+                interimStatementDto.setRegisteredCapital(CommonUtils.longValue(span.getText().replace(",", "").trim()));
+
+            span = getWebElementById(webDriver, "ctl00_txbUnauthorizedCapital");
+            if (!CommonUtils.isNull(span))
+                interimStatementDto.setNotRegisteredCapital(CommonUtils.longValue(span.getText().replace(",", "").trim()));
+
+            span = getWebElementById(webDriver, "ctl00_lblPeriod");
+            if (!CommonUtils.isNull(span))
+                interimStatementDto.setPeriod(span.getText().trim());
+
+            span = getWebElementById(webDriver, "ctl00_lblIsAudited");
+            if (!CommonUtils.isNull(span))
+                interimStatementDto.setFinancialStatementStatus(span.getText().trim());
+
+            span = getWebElementById(webDriver, "ctl00_lblCompanyState");
+            if (!CommonUtils.isNull(span))
+                interimStatementDto.setPublisherStatus(span.getText().trim());
+            WebElement webElement = getWebElementById(webDriver, "ddlTable");
+            if (CommonUtils.isNull(webElement))
+                webElement = getWebElementById(webDriver, "ctl00_ddlTable");
+            Select select = new Select(webElement);
+            for (int typeIndex = 0; typeIndex < select.getOptions().size(); typeIndex++) {
+                if (typeIndex > 0) {
+                    webDriver.findElement(By.className("next_report")).click();
+                }
+                webElement = getWebElementById(webDriver, "ddlTable");
+                if (CommonUtils.isNull(webElement))
+                    webElement = getWebElementById(webDriver, "ctl00_ddlTable");
+                select = new Select(webElement);
+                if (select.getFirstSelectedOption().getText().trim().equals("ترازنامه") ||
+                        select.getFirstSelectedOption().getText().trim().equals("صورت سود و زیان") ||
+                        select.getFirstSelectedOption().getText().trim().equals("جریان وجوه نقد")) {
+                    WebElement table = getWebElementByClass(webDriver, "rayanDynamicStatement");
+                    String type = "rayanDynamicStatement";
+                    if (CommonUtils.isNull(table)) {
+                        type = "";
+                        String tableId = "";
+                        if (select.getFirstSelectedOption().getText().trim().equals("ترازنامه")) {
+                            tableId = "ctl00_cphBody_ucSFinancialPosition_grdSFinancialPosition";
+                        } else if (select.getFirstSelectedOption().getText().trim().equals("صورت سود و زیان")) {
+                            tableId = "ctl00_cphBody_ucInterimStatement_grdInterimStatement";
+                        } else if (select.getFirstSelectedOption().getText().trim().equals("جریان وجوه نقد")) {
+                            tableId = "ctl00_cphBody_ucCashFlow1_gvCashFlow";
+                            type = "rayanDynamicStatement";
+                        }
+                        table = getWebElementById(webDriver, tableId);
+                    }
+                    if (select.getFirstSelectedOption().getText().trim().equals("ترازنامه")) {
+                        interimStatementDto.setBalanceSheets(getBalanceSheets(table, type));
+                    } else if (select.getFirstSelectedOption().getText().trim().equals("صورت سود و زیان")) {
+                        interimStatementDto.setProfitAndStatement(getBalanceSheets(table, type));
+                    } else if (select.getFirstSelectedOption().getText().trim().equals("جریان وجوه نقد")) {
+                        interimStatementDto.setCashFlow(getBalanceSheets(table, type));
+                    }
+                } else if (1 == 1) {
+
+                } else if (typeIndex == 2) {
+
+                } else if (typeIndex == 3) {
+
+                } else if (typeIndex == 4) {
+
+                } else if (typeIndex == 5) {
+
+                } else if (typeIndex == 6) {
+
+                } else if (typeIndex == 7) {
+
+                }
+            }
+
+            interimStatementDtos.add(interimStatementDto);
+            webDriver.close();
+        }
+        webDriverMain.close();
+        return interimStatementDtos;
+    }
+
+    private List<BalanceSheet> getBalanceSheets(WebElement table, String type) {
+        BalanceSheet balanceSheet = new BalanceSheet();
+        List<BalanceSheet> balanceSheets = new ArrayList<>();
+        WebElement tbody = table.findElement(By.tagName("tbody"));
+        List<WebElement> rows = tbody.findElements(By.tagName("tr"));
+        int defaultValue = 0;
+        if (!type.equals("rayanDynamicStatement"))
+            defaultValue = 1;
+        for (int j = defaultValue; j < rows.size(); j++) {
+            List<WebElement> columns = rows.get(j).findElements(By.tagName("td"));
+            balanceSheet = new BalanceSheet();
+            defaultValue = 0;
+            if (!type.equals("rayanDynamicStatement")) {
+                defaultValue = 1;
+            }
+            for (int i = defaultValue; i < columns.size(); i++) {
+                if ((i == 0 && type.equals("rayanDynamicStatement")) || (i == 1) && !type.equals("rayanDynamicStatement")) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    if (CommonUtils.isNull(span))
+                        span = columns.get(i);
+                    balanceSheet.setDescription(span.getText().trim());
+                } else if ((i == 1 && type.equals("rayanDynamicStatement")) || (i == 2) && !type.equals("rayanDynamicStatement")) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    String textVlaue = "";
+                    if (CommonUtils.isNull(span)) {
+                        WebElement input = getWebElement(columns.get(i), "input");
+                        if (CommonUtils.isNull(input)) {
+                            span = columns.get(i);
+                            textVlaue = span.getText().replace(",", "").trim();
+                        } else {
+                            textVlaue = input.getDomProperty("value").replace(",", "").trim();
+                        }
+                    } else {
+                        textVlaue = span.getText().replace(",", "").trim();
+                    }
+                    boolean isNegative = false;
+                    if (textVlaue.indexOf("(") != -1) {
+                        isNegative = true;
+                        textVlaue = textVlaue.replace("(", "").replace(")", "");
+                    }
+                    if (isNegative)
+                        balanceSheet.setActualPerformance(CommonUtils.longValue(textVlaue) * -1);
+                    else
+                        balanceSheet.setActualPerformance(CommonUtils.longValue(textVlaue));
+                } else if ((i == 2 && type.equals("rayanDynamicStatement")) || (i == 3) && !type.equals("rayanDynamicStatement")) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    String textVlaue = "";
+                    if (CommonUtils.isNull(span)) {
+                        WebElement input = getWebElement(columns.get(i), "input");
+                        if (CommonUtils.isNull(input)) {
+                            span = columns.get(i);
+                            textVlaue = span.getText().replace(",", "").trim();
+                        } else {
+                            textVlaue = input.getDomProperty("value").replace(",", "").trim();
+                        }
+                    } else {
+                        textVlaue = span.getText().replace(",", "").trim();
+                    }
+                    boolean isNegative = false;
+                    if (textVlaue.indexOf("(") != -1) {
+                        isNegative = true;
+                        textVlaue = textVlaue.replace("(", "").replace(")", "");
+                    }
+                    if (isNegative)
+                        balanceSheet.setEndOfOldYear(CommonUtils.longValue(textVlaue) * -1);
+                    else
+                        balanceSheet.setEndOfOldYear(CommonUtils.longValue(textVlaue));
+                } else if ((i == 3 && type.equals("rayanDynamicStatement")) || (i == 4) && !type.equals("rayanDynamicStatement")) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    String textVlaue = "";
+                    if (CommonUtils.isNull(span)) {
+                        WebElement input = getWebElement(columns.get(i), "input");
+                        if (CommonUtils.isNull(input)) {
+                            span = columns.get(i);
+                            textVlaue = span.getText().replace(",", "").trim();
+                        } else {
+                            textVlaue = input.getDomProperty("value").replace(",", "").trim();
+                        }
+                    } else {
+                        textVlaue = span.getText().replace(",", "").trim();
+                    }
+                    boolean isNegative = false;
+                    if (textVlaue.indexOf("(") != -1) {
+                        isNegative = true;
+                        textVlaue = textVlaue.replace("(", "").replace(")", "");
+                    }
+                    if (isNegative)
+                        balanceSheet.setChangePercent(CommonUtils.longValue(textVlaue) * -1);
+                    else
+                        balanceSheet.setChangePercent(CommonUtils.longValue(textVlaue));
+                } else if ((i == 4 && type.equals("rayanDynamicStatement")) || (i == 6) && !type.equals("rayanDynamicStatement")) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    if (CommonUtils.isNull(span))
+                        span = columns.get(i);
+                    balanceSheet.setDescription2(span.getText().trim());
+                } else if ((i == 5 && type.equals("rayanDynamicStatement")) || (i == 7) && !type.equals("rayanDynamicStatement")) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    String textVlaue = "";
+                    if (CommonUtils.isNull(span)) {
+                        WebElement input = getWebElement(columns.get(i), "input");
+                        if (CommonUtils.isNull(input)) {
+                            span = columns.get(i);
+                            textVlaue = span.getText().replace(",", "").trim();
+                        } else {
+                            textVlaue = input.getDomProperty("value").replace(",", "").trim();
+                        }
+                    } else {
+                        textVlaue = span.getText().replace(",", "").trim();
+                    }
+                    boolean isNegative = false;
+                    if (textVlaue.indexOf("(") != -1) {
+                        isNegative = true;
+                        textVlaue = textVlaue.replace("(", "").replace(")", "");
+                    }
+                    if (isNegative)
+                        balanceSheet.setActualPerformance2(CommonUtils.longValue(textVlaue) * -1);
+                    else
+                        balanceSheet.setActualPerformance2(CommonUtils.longValue(textVlaue));
+                } else if ((i == 6 && type.equals("rayanDynamicStatement")) || (i == 8) && !type.equals("rayanDynamicStatement")) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    String textVlaue = "";
+                    if (CommonUtils.isNull(span)) {
+                        WebElement input = getWebElement(columns.get(i), "input");
+                        if (CommonUtils.isNull(input)) {
+                            span = columns.get(i);
+                            textVlaue = span.getText().replace(",", "").trim();
+                        } else {
+                            textVlaue = input.getDomProperty("value").replace(",", "").trim();
+                        }
+                    } else {
+                        textVlaue = span.getText().replace(",", "").trim();
+                    }
+                    boolean isNegative = false;
+                    if (textVlaue.indexOf("(") != -1) {
+                        isNegative = true;
+                        textVlaue = textVlaue.replace("(", "").replace(")", "");
+                    }
+                    if (isNegative)
+                        balanceSheet.setEndOfOldYear2(CommonUtils.longValue(textVlaue) * -1);
+                    else
+                        balanceSheet.setEndOfOldYear2(CommonUtils.longValue(textVlaue));
+                } else if ((i == 7 && type.equals("rayanDynamicStatement")) || (i == 9) && !type.equals("rayanDynamicStatement")) {
+                    WebElement span = getWebElement(columns.get(i), "span");
+                    String textVlaue = "";
+                    if (CommonUtils.isNull(span)) {
+                        WebElement input = getWebElement(columns.get(i), "input");
+                        if (CommonUtils.isNull(input)) {
+                            span = columns.get(i);
+                            textVlaue = span.getText().replace(",", "").trim();
+                        } else {
+                            textVlaue = input.getDomProperty("value").replace(",", "").trim();
+                        }
+                    } else {
+                        textVlaue = span.getText().replace(",", "").trim();
+                    }
+                    boolean isNegative = false;
+                    if (textVlaue.indexOf("(") != -1) {
+                        isNegative = true;
+                        textVlaue = textVlaue.replace("(", "").replace(")", "");
+                    }
+                    if (isNegative)
+                        balanceSheet.setChangePercent2(CommonUtils.longValue(textVlaue) * -1);
+                    else
+                        balanceSheet.setChangePercent2(CommonUtils.longValue(textVlaue));
+                }
+            }
+            if (!CommonUtils.isNull(balanceSheet.getDescription()) || !CommonUtils.isNull(balanceSheet.getDescription2()))
+                balanceSheets.add(balanceSheet);
+        }
+        return balanceSheets;
     }
 
     public List<PriorityOrBuyShare> getPriorityOrBuyShare(String letterType) throws Exception {
@@ -451,6 +740,14 @@ public class MeetingService {
     private WebElement getWebElementById(WebDriver webDriver, String id) {
         try {
             return webDriver.findElement(By.id(id));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private WebElement getWebElementByClass(WebDriver webDriver, String className) {
+        try {
+            return webDriver.findElement(By.className(className));
         } catch (Exception e) {
             return null;
         }
