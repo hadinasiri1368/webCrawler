@@ -15,11 +15,9 @@ import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.List;
 
-//وزاگرس
-//تملت
 public class MeetingService {
     private String date;
-    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&AuditorRef=-1&PageNumber=1&Audited&NotAudited&IsNotAudited=false&Childs&Mains&Publisher=false&CompanyState=-1&Category=-1&CompanyType=-1&Consolidatable&NotConsolidatable";
+    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&AuditorRef=-1&Symbol=شپنا&PageNumber=1&Audited&NotAudited&IsNotAudited=false&Childs&Mains&Publisher=false&CompanyState=-1&Category=-1&CompanyType=-1&Consolidatable&NotConsolidatable";
 
     public MeetingService(String date) {
         this.date = date;
@@ -116,20 +114,6 @@ public class MeetingService {
                     } else if (select.getFirstSelectedOption().getText().trim().equals("جریان وجوه نقد")) {
                         interimStatementDto.setCashFlow(getBalanceSheets(table, type));
                     }
-                } else if (1 == 1) {
-
-                } else if (typeIndex == 2) {
-
-                } else if (typeIndex == 3) {
-
-                } else if (typeIndex == 4) {
-
-                } else if (typeIndex == 5) {
-
-                } else if (typeIndex == 6) {
-
-                } else if (typeIndex == 7) {
-
                 }
             }
 
@@ -544,8 +528,13 @@ public class MeetingService {
             extraAssemblyDto.setLink(ietm);
             System.out.println(ietm);
             webDriver.get(ietm);
-            extraAssemblyDto.setBourseAccount(webDriver.findElement(By.id("lblCompany")).getText().split(":")[1].trim());
-            extraAssemblyDto.setCompany(webDriver.findElement(By.id("lblCompany")).getText().split(":")[0].trim().split("-")[0].trim());
+            String company = webDriver.findElement(By.id("lblCompany")).getText();
+            if (company.indexOf(":") != -1) {
+                extraAssemblyDto.setBourseAccount(webDriver.findElement(By.id("lblCompany")).getText().split(":")[1].trim());
+                extraAssemblyDto.setCompany(webDriver.findElement(By.id("lblCompany")).getText().split(":")[0].trim().split("-")[0].trim());
+            } else {
+                extraAssemblyDto.setBourseAccount(company);
+            }
             elements = webDriver.findElements(By.tagName("bdo"));
             extraAssemblyDto.setMeetingDate(elements.get(2).getText());
             WebElement table = getWebElementById(webDriver, "ucAssemblyShareHolder1_gvAssemblyShareHolder");
