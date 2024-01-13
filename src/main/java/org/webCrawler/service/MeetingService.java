@@ -4,24 +4,26 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.webCrawler.common.CommonUtils;
 import org.webCrawler.config.Selenium;
 import org.webCrawler.dto.*;
 
-import javax.lang.model.element.Element;
-import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MeetingService {
     private String date;
-    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&AuditorRef=-1&Symbol=شپنا&PageNumber=1&Audited&NotAudited&IsNotAudited=false&Childs&Mains&Publisher=false&CompanyState=-1&Category=-1&CompanyType=-1&Consolidatable&NotConsolidatable";
+    //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=شپنا&AuditorRef=-1&PageNumber=1&Audited&NotAudited&IsNotAudited=false&Childs&Mains&Publisher=false&CompanyState=-1&Category=-1&CompanyType=-1&Consolidatable&NotConsolidatable";
+    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=شپنا";
 
     public MeetingService(String date) {
         this.date = date;
         this.webUrl += String.format("&FromDate=%s&ToDate=%s", date, date);
+    }
+
+    public MeetingService(String date, String endDate) {
+        this.date = date;
+        this.webUrl += String.format("&FromDate=%s&ToDate=%s", date, endDate);
     }
 
     public List<InterimStatementDto> getInterimStatementDto(String letterType) throws Exception {
@@ -29,96 +31,112 @@ public class MeetingService {
         List<InterimStatementDto> interimStatementDtos = new ArrayList<>();
         this.webUrl += String.format("&LetterType=%s", letterType);
         WebDriver webDriverMain = new Selenium().webDriver();
+        Thread.sleep(10000);
         webDriverMain.get(webUrl);
-        List<String> links = new ArrayList<>();
-        List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
-        for (WebElement webElement : elements) {
-            links.add(webElement.getDomProperty("href"));
-        }
-        for (String link : links) {
-            interimStatementDto = new InterimStatementDto();
-            interimStatementDto.setLink(link);
-            WebDriver webDriver = new Selenium().webDriver();
-            webDriver.get(link);
+        Thread.sleep(10000);
+        boolean flag = true;
+        while (flag) {
+            List<String> links = new ArrayList<>();
+            List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
+            for (WebElement webElement : elements) {
+                links.add(webElement.getDomProperty("href"));
+            }
+            for (String link : links) {
+                interimStatementDto = new InterimStatementDto();
+                interimStatementDto.setLink(link);
+                WebDriver webDriver = new Selenium().webDriver();
+                Thread.sleep(10000);
+                webDriver.get(link);
+                Thread.sleep(10000);
+                WebElement span = getWebElementById(webDriver, "ctl00_txbCompanyName");
+                if (!CommonUtils.isNull(span))
+                    interimStatementDto.setCompany(span.getText().trim());
 
-            WebElement span = getWebElementById(webDriver, "ctl00_txbCompanyName");
-            if (!CommonUtils.isNull(span))
-                interimStatementDto.setCompany(span.getText().trim());
+                span = getWebElementById(webDriver, "ctl00_txbSymbol");
+                if (!CommonUtils.isNull(span))
+                    interimStatementDto.setBourseAccount(span.getText().trim());
 
-            span = getWebElementById(webDriver, "ctl00_txbSymbol");
-            if (!CommonUtils.isNull(span))
-                interimStatementDto.setBourseAccount(span.getText().trim());
+                span = getWebElementById(webDriver, "ctl00_lblISIC");
+                if (!CommonUtils.isNull(span))
+                    interimStatementDto.setISICCode(span.getText().trim());
 
-            span = getWebElementById(webDriver, "ctl00_lblISIC");
-            if (!CommonUtils.isNull(span))
-                interimStatementDto.setISICCode(span.getText().trim());
+                span = getWebElementById(webDriver, "ctl00_lblYearEndToDate");
+                span = span.findElement(By.tagName("bdo"));
+                if (!CommonUtils.isNull(span))
+                    interimStatementDto.setDate(span.getText().trim());
 
-            span = getWebElementById(webDriver, "ctl00_lblYearEndToDate");
-            span = span.findElement(By.tagName("bdo"));
-            if (!CommonUtils.isNull(span))
-                interimStatementDto.setDate(span.getText().trim());
+                span = getWebElementById(webDriver, "ctl00_lblListedCapital");
+                if (!CommonUtils.isNull(span))
+                    interimStatementDto.setRegisteredCapital(CommonUtils.longValue(span.getText().replace(",", "").trim()));
 
-            span = getWebElementById(webDriver, "ctl00_lblListedCapital");
-            if (!CommonUtils.isNull(span))
-                interimStatementDto.setRegisteredCapital(CommonUtils.longValue(span.getText().replace(",", "").trim()));
+                span = getWebElementById(webDriver, "ctl00_txbUnauthorizedCapital");
+                if (!CommonUtils.isNull(span))
+                    interimStatementDto.setNotRegisteredCapital(CommonUtils.longValue(span.getText().replace(",", "").trim()));
 
-            span = getWebElementById(webDriver, "ctl00_txbUnauthorizedCapital");
-            if (!CommonUtils.isNull(span))
-                interimStatementDto.setNotRegisteredCapital(CommonUtils.longValue(span.getText().replace(",", "").trim()));
+                span = getWebElementById(webDriver, "ctl00_lblPeriod");
+                if (!CommonUtils.isNull(span))
+                    interimStatementDto.setPeriod(span.getText().trim());
 
-            span = getWebElementById(webDriver, "ctl00_lblPeriod");
-            if (!CommonUtils.isNull(span))
-                interimStatementDto.setPeriod(span.getText().trim());
+                span = getWebElementById(webDriver, "ctl00_lblIsAudited");
+                if (!CommonUtils.isNull(span))
+                    interimStatementDto.setFinancialStatementStatus(span.getText().trim());
 
-            span = getWebElementById(webDriver, "ctl00_lblIsAudited");
-            if (!CommonUtils.isNull(span))
-                interimStatementDto.setFinancialStatementStatus(span.getText().trim());
-
-            span = getWebElementById(webDriver, "ctl00_lblCompanyState");
-            if (!CommonUtils.isNull(span))
-                interimStatementDto.setPublisherStatus(span.getText().trim());
-            WebElement webElement = getWebElementById(webDriver, "ddlTable");
-            if (CommonUtils.isNull(webElement))
-                webElement = getWebElementById(webDriver, "ctl00_ddlTable");
-            Select select = new Select(webElement);
-            for (int typeIndex = 0; typeIndex < select.getOptions().size(); typeIndex++) {
-                if (typeIndex > 0) {
-                    webDriver.findElement(By.className("next_report")).click();
-                }
-                webElement = getWebElementById(webDriver, "ddlTable");
+                span = getWebElementById(webDriver, "ctl00_lblCompanyState");
+                if (!CommonUtils.isNull(span))
+                    interimStatementDto.setPublisherStatus(span.getText().trim());
+                WebElement webElement = getWebElementById(webDriver, "ddlTable");
                 if (CommonUtils.isNull(webElement))
                     webElement = getWebElementById(webDriver, "ctl00_ddlTable");
-                select = new Select(webElement);
-                if (select.getFirstSelectedOption().getText().trim().equals("ترازنامه") ||
-                        select.getFirstSelectedOption().getText().trim().equals("صورت سود و زیان") ||
-                        select.getFirstSelectedOption().getText().trim().equals("جریان وجوه نقد")) {
-                    WebElement table = getWebElementByClass(webDriver, "rayanDynamicStatement");
-                    String type = "rayanDynamicStatement";
-                    if (CommonUtils.isNull(table)) {
-                        type = "";
-                        String tableId = "";
-                        if (select.getFirstSelectedOption().getText().trim().equals("ترازنامه")) {
-                            tableId = "ctl00_cphBody_ucSFinancialPosition_grdSFinancialPosition";
-                        } else if (select.getFirstSelectedOption().getText().trim().equals("صورت سود و زیان")) {
-                            tableId = "ctl00_cphBody_ucInterimStatement_grdInterimStatement";
-                        } else if (select.getFirstSelectedOption().getText().trim().equals("جریان وجوه نقد")) {
-                            tableId = "ctl00_cphBody_ucCashFlow1_gvCashFlow";
-                            type = "rayanDynamicStatement";
-                        }
-                        table = getWebElementById(webDriver, tableId);
+                Select select = new Select(webElement);
+                for (int typeIndex = 0; typeIndex < select.getOptions().size(); typeIndex++) {
+                    if (typeIndex > 0) {
+                        webDriver.findElement(By.className("next_report")).click();
                     }
-                    if (select.getFirstSelectedOption().getText().trim().equals("ترازنامه")) {
-                        interimStatementDto.setBalanceSheets(getBalanceSheets(table, type));
-                    } else if (select.getFirstSelectedOption().getText().trim().equals("صورت سود و زیان")) {
-                        interimStatementDto.setProfitAndStatement(getBalanceSheets(table, type));
-                    } else if (select.getFirstSelectedOption().getText().trim().equals("جریان وجوه نقد")) {
-                        interimStatementDto.setCashFlow(getBalanceSheets(table, type));
+                    webElement = getWebElementById(webDriver, "ddlTable");
+                    if (CommonUtils.isNull(webElement))
+                        webElement = getWebElementById(webDriver, "ctl00_ddlTable");
+                    select = new Select(webElement);
+                    if (select.getFirstSelectedOption().getText().trim().equals("ترازنامه") ||
+                            select.getFirstSelectedOption().getText().trim().equals("صورت سود و زیان") ||
+                            select.getFirstSelectedOption().getText().trim().equals("جریان وجوه نقد")) {
+                        WebElement table = getWebElementByClass(webDriver, "rayanDynamicStatement");
+                        String type = "rayanDynamicStatement";
+                        if (CommonUtils.isNull(table)) {
+                            type = "";
+                            String tableId = "";
+                            if (select.getFirstSelectedOption().getText().trim().equals("ترازنامه")) {
+                                tableId = "ctl00_cphBody_ucSFinancialPosition_grdSFinancialPosition";
+                            } else if (select.getFirstSelectedOption().getText().trim().equals("صورت سود و زیان")) {
+                                tableId = "ctl00_cphBody_ucInterimStatement_grdInterimStatement";
+                            } else if (select.getFirstSelectedOption().getText().trim().equals("جریان وجوه نقد")) {
+                                tableId = "ctl00_cphBody_ucCashFlow1_gvCashFlow";
+                                type = "rayanDynamicStatement";
+                            }
+                            table = getWebElementById(webDriver, tableId);
+                        }
+                        if (select.getFirstSelectedOption().getText().trim().equals("ترازنامه")) {
+                            interimStatementDto.setBalanceSheets(getBalanceSheets(table, type));
+                        } else if (select.getFirstSelectedOption().getText().trim().equals("صورت سود و زیان")) {
+                            interimStatementDto.setProfitAndStatement(getBalanceSheets(table, type));
+                        } else if (select.getFirstSelectedOption().getText().trim().equals("جریان وجوه نقد")) {
+                            interimStatementDto.setCashFlow(getBalanceSheets(table, type));
+                        }
+                    }
+                }
+                interimStatementDtos.add(interimStatementDto);
+                webDriver.close();
+            }
+            WebElement li = getWebElementByTitle(webDriverMain, "صفحه بعدی");
+            flag = false;
+            if (!CommonUtils.isNull(li)) {
+                WebElement link = getWebElement(li, "a");
+                if (!CommonUtils.isNull(link)) {
+                    if (!CommonUtils.isNull(link.getDomProperty("href"))) {
+                        link.click();
+                        flag = true;
                     }
                 }
             }
-
-            interimStatementDtos.add(interimStatementDto);
-            webDriver.close();
         }
         webDriverMain.close();
         return interimStatementDtos;
@@ -296,81 +314,101 @@ public class MeetingService {
         return balanceSheets;
     }
 
-    public List<PriorityOrBuyShare> getPriorityOrBuyShare(String letterType) throws Exception {
-        PriorityOrBuyShare priorityOrBuyShare = new PriorityOrBuyShare();
-        List<PriorityOrBuyShare> capitalIncreaseDto = new ArrayList<>();
+    public List<PriorityOrBuyShareDto> getPriorityOrBuyShare(String letterType) throws Exception {
+        PriorityOrBuyShareDto priorityOrBuyShare = new PriorityOrBuyShareDto();
+        List<PriorityOrBuyShareDto> capitalIncreaseDto = new ArrayList<>();
         this.webUrl += String.format("&LetterType=%s", letterType);
         WebDriver webDriverMain = new Selenium().webDriver();
+        Thread.sleep(10000);
         webDriverMain.get(webUrl);
-        List<String> links = new ArrayList<>();
-        List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
-        for (WebElement webElement : elements) {
-            links.add(webElement.getDomProperty("href"));
-        }
-        for (String link : links) {
-            priorityOrBuyShare = new PriorityOrBuyShare();
-            priorityOrBuyShare.setLink(link);
-            WebDriver webDriver = new Selenium().webDriver();
-            webDriver.get(link);
-            WebElement span = getWebElementById(webDriver, "lblLicenseDesc");
-            if (!CommonUtils.isNull(span)) {
-                if (!CommonUtils.isNull(span.getText())) {
-                    priorityOrBuyShare.setLicenseNumber(span.getText().split("مورخ")[0].trim());
-                    priorityOrBuyShare.setAdvertisementDate(span.getText().split("مورخ")[1].replace("و", "").trim());
+        Thread.sleep(10000);
+        boolean flag = true;
+        while (flag) {
+            List<String> links = new ArrayList<>();
+            List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
+            for (WebElement webElement : elements) {
+                links.add(webElement.getDomProperty("href"));
+            }
+            for (String link : links) {
+                priorityOrBuyShare = new PriorityOrBuyShareDto();
+                priorityOrBuyShare.setLink(link);
+                WebDriver webDriver = new Selenium().webDriver();
+                Thread.sleep(10000);
+                webDriver.get(link);
+                Thread.sleep(10000);
+                WebElement span = getWebElementById(webDriver, "lblLicenseDesc");
+                if (!CommonUtils.isNull(span)) {
+                    if (!CommonUtils.isNull(span.getText())) {
+                        priorityOrBuyShare.setLicenseNumber(span.getText().split("مورخ")[0].trim());
+                        priorityOrBuyShare.setAdvertisementDate(span.getText().split("مورخ")[1].replace("و", "").trim());
+                    }
+                }
+                span = getWebElementById(webDriver, "lblLastExtraAssembly");
+                if (!CommonUtils.isNull(span)) {
+                    priorityOrBuyShare.setMeetingDate(span.getText().trim());
+                }
+
+                span = getWebElementById(webDriver, "lblLastCapitalIncreaseSession");
+                if (!CommonUtils.isNull(span)) {
+                    priorityOrBuyShare.setProceedingsDate(span.getText().trim());
+                }
+
+                span = getWebElementById(webDriver, "lblPreviousCapital");
+                if (!CommonUtils.isNull(span)) {
+                    priorityOrBuyShare.setFromAmount(CommonUtils.longValue(span.getText().trim().replace(",", "")));
+                }
+                span = getWebElementById(webDriver, "lblNewCapital");
+                if (!CommonUtils.isNull(span)) {
+                    priorityOrBuyShare.setToAmount(CommonUtils.longValue(span.getText().trim().replace(",", "")));
+                }
+
+                span = getWebElementById(webDriver, "lblCashIncomingCaption1");
+                if (!CommonUtils.isNull(span)) {
+                    priorityOrBuyShare.setType(span.getText().trim());
+                }
+
+                span = getWebElementById(webDriver, "txbStartDate");
+                if (!CommonUtils.isNull(span)) {
+                    priorityOrBuyShare.setStartDate(span.getText().trim());
+                }
+
+                span = getWebElementById(webDriver, "txbEndDate");
+                if (!CommonUtils.isNull(span)) {
+                    priorityOrBuyShare.setEndDate(span.getText().trim());
+                }
+
+                span = getWebElementById(webDriver, "txbDate");
+                if (!CommonUtils.isNull(span)) {
+                    priorityOrBuyShare.setConfirmDate(span.getText().trim());
+                }
+
+                capitalIncreaseDto.add(priorityOrBuyShare);
+                webDriver.close();
+            }
+            WebElement li = getWebElementByTitle(webDriverMain, "صفحه بعدی");
+            flag = false;
+            if (!CommonUtils.isNull(li)) {
+                WebElement link = getWebElement(li, "a");
+                if (!CommonUtils.isNull(link)) {
+                    if (!CommonUtils.isNull(link.getDomProperty("href"))) {
+                        link.click();
+                        flag = true;
+                    }
                 }
             }
-            span = getWebElementById(webDriver, "lblLastExtraAssembly");
-            if (!CommonUtils.isNull(span)) {
-                priorityOrBuyShare.setMeetingDate(span.getText().trim());
-            }
-
-            span = getWebElementById(webDriver, "lblLastCapitalIncreaseSession");
-            if (!CommonUtils.isNull(span)) {
-                priorityOrBuyShare.setProceedingsDate(span.getText().trim());
-            }
-
-            span = getWebElementById(webDriver, "lblPreviousCapital");
-            if (!CommonUtils.isNull(span)) {
-                priorityOrBuyShare.setFromAmount(CommonUtils.longValue(span.getText().trim().replace(",", "")));
-            }
-            span = getWebElementById(webDriver, "lblNewCapital");
-            if (!CommonUtils.isNull(span)) {
-                priorityOrBuyShare.setToAmount(CommonUtils.longValue(span.getText().trim().replace(",", "")));
-            }
-
-            span = getWebElementById(webDriver, "lblCashIncomingCaption1");
-            if (!CommonUtils.isNull(span)) {
-                priorityOrBuyShare.setType(span.getText().trim());
-            }
-
-            span = getWebElementById(webDriver, "txbStartDate");
-            if (!CommonUtils.isNull(span)) {
-                priorityOrBuyShare.setStartDate(span.getText().trim());
-            }
-
-            span = getWebElementById(webDriver, "txbEndDate");
-            if (!CommonUtils.isNull(span)) {
-                priorityOrBuyShare.setEndDate(span.getText().trim());
-            }
-
-            span = getWebElementById(webDriver, "txbDate");
-            if (!CommonUtils.isNull(span)) {
-                priorityOrBuyShare.setConfirmDate(span.getText().trim());
-            }
-
-            capitalIncreaseDto.add(priorityOrBuyShare);
-            webDriver.close();
         }
         webDriverMain.close();
         return capitalIncreaseDto;
     }
 
-    public List<CapitalIncreaseDto> getCapitalIncrease() {
+    public List<CapitalIncreaseDto> getCapitalIncrease() throws Exception {
         CapitalIncreaseDto capitalIncreaseDto = new CapitalIncreaseDto();
         List<CapitalIncreaseDto> capitalIncreaseDtos = new ArrayList<>();
         this.webUrl += String.format("&LetterType=%s", "24");
         WebDriver webDriverMain = new Selenium().webDriver();
+        Thread.sleep(10000);
         webDriverMain.get(webUrl);
+        Thread.sleep(10000);
         List<String> links = new ArrayList<>();
         List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
         for (WebElement webElement : elements) {
@@ -380,7 +418,9 @@ public class MeetingService {
             capitalIncreaseDto = new CapitalIncreaseDto();
             capitalIncreaseDto.setLink(link);
             WebDriver webDriver = new Selenium().webDriver();
+            Thread.sleep(10000);
             webDriver.get(link);
+            Thread.sleep(10000);
             WebElement table = getWebElementById(webDriver, "tblCapitalIncrease");
             if (!CommonUtils.isNull(table)) {
                 capitalIncreaseDto.setDecisionsBoards(getDecisionsBoard(table));
@@ -462,28 +502,47 @@ public class MeetingService {
         return decisionsBoards;
     }
 
-    public List<DecisionDto> getDecisionList(String letterType) {
+    public List<DecisionDto> getDecisionList(String letterType) throws Exception {
         DecisionDto decisionDto = new DecisionDto();
         List<DecisionDto> decisionDtos = new ArrayList<>();
         this.webUrl += String.format("&LetterType=%s", letterType);
         WebDriver webDriverMain = new Selenium().webDriver();
+        Thread.sleep(10000);
         webDriverMain.get(webUrl);
-        List<String> links = new ArrayList<>();
-        List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
-        for (WebElement webElement : elements) {
-            links.add(webElement.getDomProperty("href"));
-        }
-        for (String link : links) {
-            decisionDto = new DecisionDto();
-            decisionDto.setLink(link);
-            WebDriver webDriver = new Selenium().webDriver();
-            webDriver.get(link);
-            WebElement table = getWebElementById(webDriver, "ucAssemblyPRetainedEarning_grdAssemblyProportionedRetainedEarning");
-            if (!CommonUtils.isNull(table)) {
-                decisionDto.setAssemblyDecisions(getAssemblyDecisions(table));
+        Thread.sleep(10000);
+        boolean flag = true;
+        while (flag) {
+            List<String> links = new ArrayList<>();
+            List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
+            for (WebElement webElement : elements) {
+                links.add(webElement.getDomProperty("href"));
             }
-            decisionDtos.add(decisionDto);
-            webDriver.close();
+
+            for (String link : links) {
+                decisionDto = new DecisionDto();
+                decisionDto.setLink(link);
+                WebDriver webDriver = new Selenium().webDriver();
+                Thread.sleep(10000);
+                webDriver.get(link);
+                Thread.sleep(10000);
+                WebElement table = getWebElementById(webDriver, "ucAssemblyPRetainedEarning_grdAssemblyProportionedRetainedEarning");
+                if (!CommonUtils.isNull(table)) {
+                    decisionDto.setAssemblyDecisions(getAssemblyDecisions(table));
+                }
+                decisionDtos.add(decisionDto);
+                webDriver.close();
+            }
+            WebElement li = getWebElementByTitle(webDriverMain, "صفحه بعدی");
+            flag = false;
+            if (!CommonUtils.isNull(li)) {
+                WebElement link = getWebElement(li, "a");
+                if (!CommonUtils.isNull(link)) {
+                    if (!CommonUtils.isNull(link.getDomProperty("href"))) {
+                        link.click();
+                        flag = true;
+                    }
+                }
+            }
         }
         webDriverMain.close();
         return decisionDtos;
@@ -511,40 +570,58 @@ public class MeetingService {
         return assemblyDecisionsList;
     }
 
-    public List<ExtraAssemblyDto> getExtraAssemblyList(String letterType) {
+    public List<ExtraAssemblyDto> getExtraAssemblyList(String letterType) throws Exception {
         List<ExtraAssemblyDto> extraAssemblyDtos = new ArrayList<>();
         ExtraAssemblyDto extraAssemblyDto = new ExtraAssemblyDto();
         this.webUrl += String.format("&LetterType=%s", letterType);
         WebDriver webDriverMain = new Selenium().webDriver();
+        Thread.sleep(10000);
         webDriverMain.get(webUrl);
-        List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
-        List<String> stringList = new ArrayList<>();
-        for (WebElement webElement : elements) {
-            stringList.add(webElement.getDomProperty("href"));
-        }
-        for (String ietm : stringList) {
-            WebDriver webDriver = new Selenium().webDriver();
-            extraAssemblyDto = new ExtraAssemblyDto();
-            extraAssemblyDto.setLink(ietm);
-            System.out.println(ietm);
-            webDriver.get(ietm);
-            String company = webDriver.findElement(By.id("lblCompany")).getText();
-            if (company.indexOf(":") != -1) {
-                extraAssemblyDto.setBourseAccount(webDriver.findElement(By.id("lblCompany")).getText().split(":")[1].trim());
-                extraAssemblyDto.setCompany(webDriver.findElement(By.id("lblCompany")).getText().split(":")[0].trim().split("-")[0].trim());
-            } else {
-                extraAssemblyDto.setBourseAccount(company);
+        Thread.sleep(10000);
+        Boolean flag = true;
+        while (flag) {
+            List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
+            List<String> stringList = new ArrayList<>();
+            for (WebElement webElement : elements) {
+                stringList.add(webElement.getDomProperty("href"));
             }
-            elements = webDriver.findElements(By.tagName("bdo"));
-            extraAssemblyDto.setMeetingDate(elements.get(2).getText());
-            WebElement table = getWebElementById(webDriver, "ucAssemblyShareHolder1_gvAssemblyShareHolder");
-            if (!CommonUtils.isNull(table))
-                extraAssemblyDto.setPeoplePrsentInMeetingList(getPeoplePrsentInMeetings(table));
-            table = getWebElementById(webDriver, "ucExtraAssemblyCapital1_tblCapitalIncrease");
-            if (!CommonUtils.isNull(table))
-                extraAssemblyDto.setDecisionsMades(getDecisionsMades(table));
-            extraAssemblyDtos.add(extraAssemblyDto);
-            webDriver.close();
+            for (String ietm : stringList) {
+                WebDriver webDriver = new Selenium().webDriver();
+                Thread.sleep(10000);
+                extraAssemblyDto = new ExtraAssemblyDto();
+                extraAssemblyDto.setLink(ietm);
+                System.out.println(ietm);
+                webDriver.get(ietm);
+                Thread.sleep(10000);
+                String company = webDriver.findElement(By.id("lblCompany")).getText();
+                if (company.indexOf(":") != -1) {
+                    extraAssemblyDto.setBourseAccount(webDriver.findElement(By.id("lblCompany")).getText().split(":")[1].trim());
+                    extraAssemblyDto.setCompany(webDriver.findElement(By.id("lblCompany")).getText().split(":")[0].trim().split("-")[0].trim());
+                } else {
+                    extraAssemblyDto.setBourseAccount(company);
+                }
+                elements = webDriver.findElements(By.tagName("bdo"));
+                extraAssemblyDto.setMeetingDate(elements.get(2).getText());
+                WebElement table = getWebElementById(webDriver, "ucAssemblyShareHolder1_gvAssemblyShareHolder");
+                if (!CommonUtils.isNull(table))
+                    extraAssemblyDto.setPeoplePrsentInMeetingList(getPeoplePrsentInMeetings(table));
+                table = getWebElementById(webDriver, "ucExtraAssemblyCapital1_tblCapitalIncrease");
+                if (!CommonUtils.isNull(table))
+                    extraAssemblyDto.setDecisionsMades(getDecisionsMades(table));
+                extraAssemblyDtos.add(extraAssemblyDto);
+                webDriver.close();
+            }
+            WebElement li = getWebElementByTitle(webDriverMain, "صفحه بعدی");
+            flag = false;
+            if (!CommonUtils.isNull(li)) {
+                WebElement link = getWebElement(li, "a");
+                if (!CommonUtils.isNull(link)) {
+                    if (!CommonUtils.isNull(link.getDomProperty("href"))) {
+                        link.click();
+                        flag = true;
+                    }
+                }
+            }
         }
         webDriverMain.close();
         return extraAssemblyDtos;
@@ -737,6 +814,14 @@ public class MeetingService {
     private WebElement getWebElementByClass(WebDriver webDriver, String className) {
         try {
             return webDriver.findElement(By.className(className));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private WebElement getWebElementByTitle(WebDriver webDriver, String title) {
+        try {
+            return webDriver.findElement(By.xpath("//*[@title='" + title + "']"));
         } catch (Exception e) {
             return null;
         }

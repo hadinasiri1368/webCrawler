@@ -9,7 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class PriorityOrBuyShare {
+public class PriorityOrBuyShareDto {
     private String link;
     private String licenseNumber;
     private String advertisementDate;
