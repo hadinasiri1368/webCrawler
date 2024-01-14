@@ -13,10 +13,12 @@ import java.util.List;
 @Setter
 public class InterimStatementDto {
     private String link;
+    private String name;
     private String company;
     private String bourseAccount;
     private String ISICCode;
     private String date;
+    private String endDate;
     private Long RegisteredCapital;
     private Long notRegisteredCapital;
     private String publisherStatus;

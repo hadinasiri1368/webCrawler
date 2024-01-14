@@ -11,6 +11,7 @@ import lombok.Setter;
 @Setter
 public class PriorityOrBuyShareDto {
     private String link;
+    private String bourseAccount;
     private String licenseNumber;
     private String advertisementDate;
     private String meetingDate;

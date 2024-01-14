@@ -15,6 +15,7 @@ public class MeetingService {
     private String date;
     //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=شپنا&AuditorRef=-1&PageNumber=1&Audited&NotAudited&IsNotAudited=false&Childs&Mains&Publisher=false&CompanyState=-1&Category=-1&CompanyType=-1&Consolidatable&NotConsolidatable";
     private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=شپنا";
+//    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=ومعلم";
 
     public MeetingService(String date) {
         this.date = date;
@@ -64,6 +65,11 @@ public class MeetingService {
                 span = span.findElement(By.tagName("bdo"));
                 if (!CommonUtils.isNull(span))
                     interimStatementDto.setDate(span.getText().trim());
+
+                span = getWebElementById(webDriver, "ctl00_lblPeriodEndToDate");
+                span = span.findElement(By.tagName("bdo"));
+                if (!CommonUtils.isNull(span))
+                    interimStatementDto.setEndDate(span.getText().trim());
 
                 span = getWebElementById(webDriver, "ctl00_lblListedCapital");
                 if (!CommonUtils.isNull(span))
@@ -183,7 +189,7 @@ public class MeetingService {
                         textVlaue = textVlaue.replace("(", "").replace(")", "");
                     }
                     if (isNegative)
-                        balanceSheet.setActualPerformance(CommonUtils.longValue(textVlaue) * -1);
+                        balanceSheet.setActualPerformance(CommonUtils.isNull(CommonUtils.longValue(textVlaue), 0L) * -1);
                     else
                         balanceSheet.setActualPerformance(CommonUtils.longValue(textVlaue));
                 } else if ((i == 2 && type.equals("rayanDynamicStatement")) || (i == 3) && !type.equals("rayanDynamicStatement")) {
@@ -346,6 +352,13 @@ public class MeetingService {
                 span = getWebElementById(webDriver, "lblLastExtraAssembly");
                 if (!CommonUtils.isNull(span)) {
                     priorityOrBuyShare.setMeetingDate(span.getText().trim());
+                }
+
+                span = getWebElementById(webDriver, "lblCompany");
+                if (!CommonUtils.isNull(span)) {
+                    priorityOrBuyShare.setBourseAccount(span.getText().trim());
+                    if (span.getText().trim().indexOf(":") != -1)
+                        priorityOrBuyShare.setBourseAccount(span.getText().trim().split(":")[1].trim());
                 }
 
                 span = getWebElementById(webDriver, "lblLastCapitalIncreaseSession");
@@ -524,6 +537,16 @@ public class MeetingService {
                 WebDriver webDriver = new Selenium().webDriver();
                 Thread.sleep(10000);
                 webDriver.get(link);
+
+                String company = webDriver.findElement(By.id("lblCompany")).getText();
+                decisionDto.setBourseAccount(company);
+                if (company.indexOf(":") != -1) {
+                    decisionDto.setBourseAccount(webDriver.findElement(By.id("lblCompany")).getText().split(":")[1].trim());
+                }
+
+                List<WebElement> list = webDriver.findElements(By.tagName("bdo"));
+                decisionDto.setMeetingDate(list.get(1).getText());
+
                 Thread.sleep(10000);
                 WebElement table = getWebElementById(webDriver, "ucAssemblyPRetainedEarning_grdAssemblyProportionedRetainedEarning");
                 if (!CommonUtils.isNull(table)) {

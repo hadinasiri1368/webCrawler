@@ -47,6 +47,10 @@ public class CommonUtils {
         return o == null ? true : false;
     }
 
+    public static <E> E isNull(E expr1, E expr2) {
+        return (!isNull(expr1)) ? expr1 : expr2;
+    }
+
     public static Double doubleValue(Object number) {
         if (isNull(number))
             return null;

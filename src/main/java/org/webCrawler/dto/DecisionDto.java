@@ -13,5 +13,7 @@ import java.util.List;
 @Setter
 public class DecisionDto {
     private String link;
+    private String bourseAccount;
+    private String meetingDate;
     private List<AssemblyDecisions> assemblyDecisions;
 }
