@@ -8,6 +8,7 @@ import org.webCrawler.common.CommonUtils;
 import org.webCrawler.common.DateUtil;
 import org.webCrawler.dto.*;
 import org.webCrawler.service.GenericService;
+import org.webCrawler.service.InstrumentService;
 import org.webCrawler.service.MeetingService;
 
 import java.time.LocalDate;
@@ -152,7 +153,7 @@ public class API {
         return decisionDtos;
     }
 
-    @GetMapping(path = "/api/InterimStatementDto")
+    @GetMapping(path = "/api/interimStatementDto")
     public List<InterimStatementDto> getInterimStatementDto(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
         checkInputData(startDate, endDate);
         List<InterimStatementDto> interimStatementDtos = new ArrayList<>();
@@ -162,6 +163,14 @@ public class API {
             InterimStatement.add(item);
         }
         return interimStatementDtos;
+    }
+
+    @GetMapping(path = "/api/instrumentInfo")
+    public InstrumentInfo getInstrumentInfo(@RequestParam("bourseAccount") String bourseAccount) throws Exception {
+        InstrumentInfo instrumentInfo = new InstrumentInfo();
+        InstrumentService instrumentService = new InstrumentService(bourseAccount);
+        instrumentInfo = instrumentService.getInstrumentInfo();
+        return instrumentInfo;
     }
 
     private void checkInputData(String startDate, String endDate) throws Exception {

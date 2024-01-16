@@ -27,7 +27,7 @@ public class CommonUtils {
             return ((Number) number).longValue();
         else
             try {
-                return Long.valueOf(number.toString().trim());
+                return Long.valueOf(cleanTextNumber(number.toString()));
             } catch (NumberFormatException e) {
                 return null;
             }
@@ -58,7 +58,7 @@ public class CommonUtils {
             return ((Number) number).doubleValue();
         else
             try {
-                return Double.valueOf(number.toString().trim());
+                return Double.valueOf(cleanTextNumber(number.toString()));
             } catch (NumberFormatException e) {
                 return null;
             }
@@ -71,7 +71,7 @@ public class CommonUtils {
             return ((Number) number).floatValue();
         else
             try {
-                return Float.valueOf(number.toString().trim());
+                return Float.valueOf(cleanTextNumber(number.toString()));
             } catch (NumberFormatException e) {
                 return null;
             }
@@ -98,4 +98,64 @@ public class CommonUtils {
         }
         return null;
     }
+
+    public static WebElement getWebElement(WebElement webElement, String tagName) {
+        try {
+            return webElement.findElement(By.tagName(tagName));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static WebElement getWebElementById(WebElement webElement, String id) {
+        try {
+            return webElement.findElement(By.id(id));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static WebElement getWebElementById(WebDriver webDriver, String id) {
+        try {
+            return webDriver.findElement(By.id(id));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static WebElement getWebElementByClass(WebDriver webDriver, String className) {
+        try {
+            return webDriver.findElement(By.className(className));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static List<WebElement> getWebElementsByClass(WebDriver webDriver, String className) {
+        try {
+            return webDriver.findElements(By.className(className));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static WebElement getWebElementByTitle(WebDriver webDriver, String title) {
+        try {
+            return webDriver.findElement(By.xpath("//*[@title='" + title + "']"));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static String cleanTextNumber(String str) {
+        str = str.trim();
+        str = str.replace(" ", "");
+        str = str.replace(",", "");
+        str = str.replace("%", "");
+        str = str.replace("(", "");
+        str = str.replace(")", "");
+        str = str.replaceAll("[^\\d.]", "");
+        return str;
+    }
+
 }

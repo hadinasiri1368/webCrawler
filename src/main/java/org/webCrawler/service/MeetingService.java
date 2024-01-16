@@ -13,7 +13,6 @@ import java.util.List;
 
 public class MeetingService {
     private String date;
-    //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=شپنا&AuditorRef=-1&PageNumber=1&Audited&NotAudited&IsNotAudited=false&Childs&Mains&Publisher=false&CompanyState=-1&Category=-1&CompanyType=-1&Consolidatable&NotConsolidatable";
     private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=شپنا";
 //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=ومعلم";
 
@@ -49,63 +48,63 @@ public class MeetingService {
                 Thread.sleep(10000);
                 webDriver.get(link);
                 Thread.sleep(10000);
-                WebElement span = getWebElementById(webDriver, "ctl00_txbCompanyName");
+                WebElement span = CommonUtils.getWebElementById(webDriver, "ctl00_txbCompanyName");
                 if (!CommonUtils.isNull(span))
                     interimStatementDto.setCompany(span.getText().trim());
 
-                span = getWebElementById(webDriver, "ctl00_txbSymbol");
+                span = CommonUtils.getWebElementById(webDriver, "ctl00_txbSymbol");
                 if (!CommonUtils.isNull(span))
                     interimStatementDto.setBourseAccount(span.getText().trim());
 
-                span = getWebElementById(webDriver, "ctl00_lblISIC");
+                span = CommonUtils.getWebElementById(webDriver, "ctl00_lblISIC");
                 if (!CommonUtils.isNull(span))
                     interimStatementDto.setISICCode(span.getText().trim());
 
-                span = getWebElementById(webDriver, "ctl00_lblYearEndToDate");
+                span = CommonUtils.getWebElementById(webDriver, "ctl00_lblYearEndToDate");
                 span = span.findElement(By.tagName("bdo"));
                 if (!CommonUtils.isNull(span))
                     interimStatementDto.setDate(span.getText().trim());
 
-                span = getWebElementById(webDriver, "ctl00_lblPeriodEndToDate");
+                span = CommonUtils.getWebElementById(webDriver, "ctl00_lblPeriodEndToDate");
                 span = span.findElement(By.tagName("bdo"));
                 if (!CommonUtils.isNull(span))
                     interimStatementDto.setEndDate(span.getText().trim());
 
-                span = getWebElementById(webDriver, "ctl00_lblListedCapital");
+                span = CommonUtils.getWebElementById(webDriver, "ctl00_lblListedCapital");
                 if (!CommonUtils.isNull(span))
                     interimStatementDto.setRegisteredCapital(CommonUtils.longValue(span.getText().replace(",", "").trim()));
 
-                span = getWebElementById(webDriver, "ctl00_txbUnauthorizedCapital");
+                span = CommonUtils.getWebElementById(webDriver, "ctl00_txbUnauthorizedCapital");
                 if (!CommonUtils.isNull(span))
                     interimStatementDto.setNotRegisteredCapital(CommonUtils.longValue(span.getText().replace(",", "").trim()));
 
-                span = getWebElementById(webDriver, "ctl00_lblPeriod");
+                span = CommonUtils.getWebElementById(webDriver, "ctl00_lblPeriod");
                 if (!CommonUtils.isNull(span))
                     interimStatementDto.setPeriod(span.getText().trim());
 
-                span = getWebElementById(webDriver, "ctl00_lblIsAudited");
+                span = CommonUtils.getWebElementById(webDriver, "ctl00_lblIsAudited");
                 if (!CommonUtils.isNull(span))
                     interimStatementDto.setFinancialStatementStatus(span.getText().trim());
 
-                span = getWebElementById(webDriver, "ctl00_lblCompanyState");
+                span = CommonUtils.getWebElementById(webDriver, "ctl00_lblCompanyState");
                 if (!CommonUtils.isNull(span))
                     interimStatementDto.setPublisherStatus(span.getText().trim());
-                WebElement webElement = getWebElementById(webDriver, "ddlTable");
+                WebElement webElement = CommonUtils.getWebElementById(webDriver, "ddlTable");
                 if (CommonUtils.isNull(webElement))
-                    webElement = getWebElementById(webDriver, "ctl00_ddlTable");
+                    webElement = CommonUtils.getWebElementById(webDriver, "ctl00_ddlTable");
                 Select select = new Select(webElement);
                 for (int typeIndex = 0; typeIndex < select.getOptions().size(); typeIndex++) {
                     if (typeIndex > 0) {
                         webDriver.findElement(By.className("next_report")).click();
                     }
-                    webElement = getWebElementById(webDriver, "ddlTable");
+                    webElement = CommonUtils.getWebElementById(webDriver, "ddlTable");
                     if (CommonUtils.isNull(webElement))
-                        webElement = getWebElementById(webDriver, "ctl00_ddlTable");
+                        webElement = CommonUtils.getWebElementById(webDriver, "ctl00_ddlTable");
                     select = new Select(webElement);
                     if (select.getFirstSelectedOption().getText().trim().equals("ترازنامه") ||
                             select.getFirstSelectedOption().getText().trim().equals("صورت سود و زیان") ||
                             select.getFirstSelectedOption().getText().trim().equals("جریان وجوه نقد")) {
-                        WebElement table = getWebElementByClass(webDriver, "rayanDynamicStatement");
+                        WebElement table = CommonUtils.getWebElementByClass(webDriver, "rayanDynamicStatement");
                         String type = "rayanDynamicStatement";
                         if (CommonUtils.isNull(table)) {
                             type = "";
@@ -118,7 +117,7 @@ public class MeetingService {
                                 tableId = "ctl00_cphBody_ucCashFlow1_gvCashFlow";
                                 type = "rayanDynamicStatement";
                             }
-                            table = getWebElementById(webDriver, tableId);
+                            table = CommonUtils.getWebElementById(webDriver, tableId);
                         }
                         if (select.getFirstSelectedOption().getText().trim().equals("ترازنامه")) {
                             interimStatementDto.setBalanceSheets(getBalanceSheets(table, type));
@@ -132,10 +131,10 @@ public class MeetingService {
                 interimStatementDtos.add(interimStatementDto);
                 webDriver.close();
             }
-            WebElement li = getWebElementByTitle(webDriverMain, "صفحه بعدی");
+            WebElement li = CommonUtils.getWebElementByTitle(webDriverMain, "صفحه بعدی");
             flag = false;
             if (!CommonUtils.isNull(li)) {
-                WebElement link = getWebElement(li, "a");
+                WebElement link = CommonUtils.getWebElement(li, "a");
                 if (!CommonUtils.isNull(link)) {
                     if (!CommonUtils.isNull(link.getDomProperty("href"))) {
                         link.click();
@@ -165,15 +164,15 @@ public class MeetingService {
             }
             for (int i = defaultValue; i < columns.size(); i++) {
                 if ((i == 0 && type.equals("rayanDynamicStatement")) || (i == 1) && !type.equals("rayanDynamicStatement")) {
-                    WebElement span = getWebElement(columns.get(i), "span");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
                     if (CommonUtils.isNull(span))
                         span = columns.get(i);
                     balanceSheet.setDescription(span.getText().trim());
                 } else if ((i == 1 && type.equals("rayanDynamicStatement")) || (i == 2) && !type.equals("rayanDynamicStatement")) {
-                    WebElement span = getWebElement(columns.get(i), "span");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
                     String textVlaue = "";
                     if (CommonUtils.isNull(span)) {
-                        WebElement input = getWebElement(columns.get(i), "input");
+                        WebElement input = CommonUtils.getWebElement(columns.get(i), "input");
                         if (CommonUtils.isNull(input)) {
                             span = columns.get(i);
                             textVlaue = span.getText().replace(",", "").trim();
@@ -193,10 +192,10 @@ public class MeetingService {
                     else
                         balanceSheet.setActualPerformance(CommonUtils.longValue(textVlaue));
                 } else if ((i == 2 && type.equals("rayanDynamicStatement")) || (i == 3) && !type.equals("rayanDynamicStatement")) {
-                    WebElement span = getWebElement(columns.get(i), "span");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
                     String textVlaue = "";
                     if (CommonUtils.isNull(span)) {
-                        WebElement input = getWebElement(columns.get(i), "input");
+                        WebElement input = CommonUtils.getWebElement(columns.get(i), "input");
                         if (CommonUtils.isNull(input)) {
                             span = columns.get(i);
                             textVlaue = span.getText().replace(",", "").trim();
@@ -216,10 +215,10 @@ public class MeetingService {
                     else
                         balanceSheet.setEndOfOldYear(CommonUtils.longValue(textVlaue));
                 } else if ((i == 3 && type.equals("rayanDynamicStatement")) || (i == 4) && !type.equals("rayanDynamicStatement")) {
-                    WebElement span = getWebElement(columns.get(i), "span");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
                     String textVlaue = "";
                     if (CommonUtils.isNull(span)) {
-                        WebElement input = getWebElement(columns.get(i), "input");
+                        WebElement input = CommonUtils.getWebElement(columns.get(i), "input");
                         if (CommonUtils.isNull(input)) {
                             span = columns.get(i);
                             textVlaue = span.getText().replace(",", "").trim();
@@ -239,15 +238,15 @@ public class MeetingService {
                     else
                         balanceSheet.setChangePercent(CommonUtils.longValue(textVlaue));
                 } else if ((i == 4 && type.equals("rayanDynamicStatement")) || (i == 6) && !type.equals("rayanDynamicStatement")) {
-                    WebElement span = getWebElement(columns.get(i), "span");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
                     if (CommonUtils.isNull(span))
                         span = columns.get(i);
                     balanceSheet.setDescription2(span.getText().trim());
                 } else if ((i == 5 && type.equals("rayanDynamicStatement")) || (i == 7) && !type.equals("rayanDynamicStatement")) {
-                    WebElement span = getWebElement(columns.get(i), "span");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
                     String textVlaue = "";
                     if (CommonUtils.isNull(span)) {
-                        WebElement input = getWebElement(columns.get(i), "input");
+                        WebElement input = CommonUtils.getWebElement(columns.get(i), "input");
                         if (CommonUtils.isNull(input)) {
                             span = columns.get(i);
                             textVlaue = span.getText().replace(",", "").trim();
@@ -267,10 +266,10 @@ public class MeetingService {
                     else
                         balanceSheet.setActualPerformance2(CommonUtils.longValue(textVlaue));
                 } else if ((i == 6 && type.equals("rayanDynamicStatement")) || (i == 8) && !type.equals("rayanDynamicStatement")) {
-                    WebElement span = getWebElement(columns.get(i), "span");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
                     String textVlaue = "";
                     if (CommonUtils.isNull(span)) {
-                        WebElement input = getWebElement(columns.get(i), "input");
+                        WebElement input = CommonUtils.getWebElement(columns.get(i), "input");
                         if (CommonUtils.isNull(input)) {
                             span = columns.get(i);
                             textVlaue = span.getText().replace(",", "").trim();
@@ -290,10 +289,10 @@ public class MeetingService {
                     else
                         balanceSheet.setEndOfOldYear2(CommonUtils.longValue(textVlaue));
                 } else if ((i == 7 && type.equals("rayanDynamicStatement")) || (i == 9) && !type.equals("rayanDynamicStatement")) {
-                    WebElement span = getWebElement(columns.get(i), "span");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
                     String textVlaue = "";
                     if (CommonUtils.isNull(span)) {
-                        WebElement input = getWebElement(columns.get(i), "input");
+                        WebElement input = CommonUtils.getWebElement(columns.get(i), "input");
                         if (CommonUtils.isNull(input)) {
                             span = columns.get(i);
                             textVlaue = span.getText().replace(",", "").trim();
@@ -342,55 +341,55 @@ public class MeetingService {
                 Thread.sleep(10000);
                 webDriver.get(link);
                 Thread.sleep(10000);
-                WebElement span = getWebElementById(webDriver, "lblLicenseDesc");
+                WebElement span = CommonUtils.getWebElementById(webDriver, "lblLicenseDesc");
                 if (!CommonUtils.isNull(span)) {
                     if (!CommonUtils.isNull(span.getText())) {
                         priorityOrBuyShare.setLicenseNumber(span.getText().split("مورخ")[0].trim());
                         priorityOrBuyShare.setAdvertisementDate(span.getText().split("مورخ")[1].replace("و", "").trim());
                     }
                 }
-                span = getWebElementById(webDriver, "lblLastExtraAssembly");
+                span = CommonUtils.getWebElementById(webDriver, "lblLastExtraAssembly");
                 if (!CommonUtils.isNull(span)) {
                     priorityOrBuyShare.setMeetingDate(span.getText().trim());
                 }
 
-                span = getWebElementById(webDriver, "lblCompany");
+                span = CommonUtils.getWebElementById(webDriver, "lblCompany");
                 if (!CommonUtils.isNull(span)) {
                     priorityOrBuyShare.setBourseAccount(span.getText().trim());
                     if (span.getText().trim().indexOf(":") != -1)
                         priorityOrBuyShare.setBourseAccount(span.getText().trim().split(":")[1].trim());
                 }
 
-                span = getWebElementById(webDriver, "lblLastCapitalIncreaseSession");
+                span = CommonUtils.getWebElementById(webDriver, "lblLastCapitalIncreaseSession");
                 if (!CommonUtils.isNull(span)) {
                     priorityOrBuyShare.setProceedingsDate(span.getText().trim());
                 }
 
-                span = getWebElementById(webDriver, "lblPreviousCapital");
+                span = CommonUtils.getWebElementById(webDriver, "lblPreviousCapital");
                 if (!CommonUtils.isNull(span)) {
                     priorityOrBuyShare.setFromAmount(CommonUtils.longValue(span.getText().trim().replace(",", "")));
                 }
-                span = getWebElementById(webDriver, "lblNewCapital");
+                span = CommonUtils.getWebElementById(webDriver, "lblNewCapital");
                 if (!CommonUtils.isNull(span)) {
                     priorityOrBuyShare.setToAmount(CommonUtils.longValue(span.getText().trim().replace(",", "")));
                 }
 
-                span = getWebElementById(webDriver, "lblCashIncomingCaption1");
+                span = CommonUtils.getWebElementById(webDriver, "lblCashIncomingCaption1");
                 if (!CommonUtils.isNull(span)) {
                     priorityOrBuyShare.setType(span.getText().trim());
                 }
 
-                span = getWebElementById(webDriver, "txbStartDate");
+                span = CommonUtils.getWebElementById(webDriver, "txbStartDate");
                 if (!CommonUtils.isNull(span)) {
                     priorityOrBuyShare.setStartDate(span.getText().trim());
                 }
 
-                span = getWebElementById(webDriver, "txbEndDate");
+                span = CommonUtils.getWebElementById(webDriver, "txbEndDate");
                 if (!CommonUtils.isNull(span)) {
                     priorityOrBuyShare.setEndDate(span.getText().trim());
                 }
 
-                span = getWebElementById(webDriver, "txbDate");
+                span = CommonUtils.getWebElementById(webDriver, "txbDate");
                 if (!CommonUtils.isNull(span)) {
                     priorityOrBuyShare.setConfirmDate(span.getText().trim());
                 }
@@ -398,10 +397,10 @@ public class MeetingService {
                 capitalIncreaseDto.add(priorityOrBuyShare);
                 webDriver.close();
             }
-            WebElement li = getWebElementByTitle(webDriverMain, "صفحه بعدی");
+            WebElement li = CommonUtils.getWebElementByTitle(webDriverMain, "صفحه بعدی");
             flag = false;
             if (!CommonUtils.isNull(li)) {
-                WebElement link = getWebElement(li, "a");
+                WebElement link = CommonUtils.getWebElement(li, "a");
                 if (!CommonUtils.isNull(link)) {
                     if (!CommonUtils.isNull(link.getDomProperty("href"))) {
                         link.click();
@@ -434,7 +433,7 @@ public class MeetingService {
             Thread.sleep(10000);
             webDriver.get(link);
             Thread.sleep(10000);
-            WebElement table = getWebElementById(webDriver, "tblCapitalIncrease");
+            WebElement table = CommonUtils.getWebElementById(webDriver, "tblCapitalIncrease");
             if (!CommonUtils.isNull(table)) {
                 capitalIncreaseDto.setDecisionsBoards(getDecisionsBoard(table));
             }
@@ -455,58 +454,58 @@ public class MeetingService {
             decisionsBoard = new DecisionsBoard();
             for (int i = 0; i < columns.size(); i++) {
                 if (i == 0) {
-                    WebElement span = getWebElement(columns.get(i), "span");
-                    WebElement input = getWebElement(span, "input");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
+                    WebElement input = CommonUtils.getWebElement(span, "input");
                     decisionsBoard.setUnitCount(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
                 } else if (i == 1) {
-                    WebElement input = getWebElement(columns.get(i), "input");
+                    WebElement input = CommonUtils.getWebElement(columns.get(i), "input");
                     decisionsBoard.setNominalValue(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
                 } else if (i == 2) {
-                    WebElement span = getWebElement(columns.get(i), "span");
-                    WebElement input = getWebElement(span, "input");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
+                    WebElement input = CommonUtils.getWebElement(span, "input");
                     decisionsBoard.setAmount(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
                 } else if (i == 3) {
-                    WebElement span = getWebElement(columns.get(i), "span");
-                    span = getWebElement(span, "span");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
+                    span = CommonUtils.getWebElement(span, "span");
                     decisionsBoard.setCash(CommonUtils.longValue(span.getText().replace(",", "").trim()));
                 } else if (i == 4) {
-                    WebElement span = getWebElement(columns.get(i), "span");
-                    span = getWebElement(span, "span");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
+                    span = CommonUtils.getWebElement(span, "span");
                     decisionsBoard.setAccumulatedProfit(CommonUtils.longValue(span.getText().replace(",", "").trim()));
                 } else if (i == 5) {
-                    WebElement span = getWebElement(columns.get(i), "span");
-                    span = getWebElement(span, "span");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
+                    span = CommonUtils.getWebElement(span, "span");
                     decisionsBoard.setSavedUp(CommonUtils.longValue(span.getText().replace(",", "").trim()));
                 } else if (i == 6) {
-                    WebElement span = getWebElement(columns.get(i), "span");
-                    span = getWebElement(span, "span");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
+                    span = CommonUtils.getWebElement(span, "span");
                     decisionsBoard.setAsset(CommonUtils.longValue(span.getText().replace(",", "").trim()));
                 } else if (i == 7) {
-                    WebElement span = getWebElement(columns.get(i), "span");
-                    span = getWebElement(span, "span");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
+                    span = CommonUtils.getWebElement(span, "span");
                     decisionsBoard.setStock(CommonUtils.longValue(span.getText().replace(",", "").trim()));
                 } else if (i == 8) {
-                    WebElement span = getWebElement(columns.get(i), "span");
-                    span = getWebElement(span, "span");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
+                    span = CommonUtils.getWebElement(span, "span");
                     decisionsBoard.setEntryCash(CommonUtils.longValue(span.getText().replace(",", "").trim()));
                 } else if (i == 9) {
-                    WebElement span = getWebElement(columns.get(i), "span");
-                    WebElement input = getWebElement(span, "input");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
+                    WebElement input = CommonUtils.getWebElement(span, "input");
                     decisionsBoard.setCapitalIncrease(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
                 } else if (i == 10) {
-                    WebElement span = getWebElement(columns.get(i), "span");
-                    WebElement input = getWebElement(span, "input");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
+                    WebElement input = CommonUtils.getWebElement(span, "input");
                     decisionsBoard.setPercentIncrease(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
                 } else if (i == 11) {
-                    WebElement span = getWebElement(columns.get(i), "span");
-                    WebElement input = getWebElement(span, "input");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
+                    WebElement input = CommonUtils.getWebElement(span, "input");
                     decisionsBoard.setUnitCountNotRegistered(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
                 } else if (i == 12) {
-                    WebElement span = getWebElement(columns.get(i), "span");
-                    WebElement input = getWebElement(span, "input");
+                    WebElement span = CommonUtils.getWebElement(columns.get(i), "span");
+                    WebElement input = CommonUtils.getWebElement(span, "input");
                     decisionsBoard.setNominalValueNotRegistered(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
                 } else if (i == 13) {
-                    WebElement input = getWebElement(columns.get(i), "input");
+                    WebElement input = CommonUtils.getWebElement(columns.get(i), "input");
                     decisionsBoard.setAmountNotRegistered(CommonUtils.longValue(input.getDomProperty("value").replace(",", "").trim()));
                 }
             }
@@ -548,17 +547,17 @@ public class MeetingService {
                 decisionDto.setMeetingDate(list.get(1).getText());
 
                 Thread.sleep(10000);
-                WebElement table = getWebElementById(webDriver, "ucAssemblyPRetainedEarning_grdAssemblyProportionedRetainedEarning");
+                WebElement table = CommonUtils.getWebElementById(webDriver, "ucAssemblyPRetainedEarning_grdAssemblyProportionedRetainedEarning");
                 if (!CommonUtils.isNull(table)) {
                     decisionDto.setAssemblyDecisions(getAssemblyDecisions(table));
                 }
                 decisionDtos.add(decisionDto);
                 webDriver.close();
             }
-            WebElement li = getWebElementByTitle(webDriverMain, "صفحه بعدی");
+            WebElement li = CommonUtils.getWebElementByTitle(webDriverMain, "صفحه بعدی");
             flag = false;
             if (!CommonUtils.isNull(li)) {
-                WebElement link = getWebElement(li, "a");
+                WebElement link = CommonUtils.getWebElement(li, "a");
                 if (!CommonUtils.isNull(link)) {
                     if (!CommonUtils.isNull(link.getDomProperty("href"))) {
                         link.click();
@@ -625,19 +624,19 @@ public class MeetingService {
                 }
                 elements = webDriver.findElements(By.tagName("bdo"));
                 extraAssemblyDto.setMeetingDate(elements.get(2).getText());
-                WebElement table = getWebElementById(webDriver, "ucAssemblyShareHolder1_gvAssemblyShareHolder");
+                WebElement table = CommonUtils.getWebElementById(webDriver, "ucAssemblyShareHolder1_gvAssemblyShareHolder");
                 if (!CommonUtils.isNull(table))
                     extraAssemblyDto.setPeoplePrsentInMeetingList(getPeoplePrsentInMeetings(table));
-                table = getWebElementById(webDriver, "ucExtraAssemblyCapital1_tblCapitalIncrease");
+                table = CommonUtils.getWebElementById(webDriver, "ucExtraAssemblyCapital1_tblCapitalIncrease");
                 if (!CommonUtils.isNull(table))
                     extraAssemblyDto.setDecisionsMades(getDecisionsMades(table));
                 extraAssemblyDtos.add(extraAssemblyDto);
                 webDriver.close();
             }
-            WebElement li = getWebElementByTitle(webDriverMain, "صفحه بعدی");
+            WebElement li = CommonUtils.getWebElementByTitle(webDriverMain, "صفحه بعدی");
             flag = false;
             if (!CommonUtils.isNull(li)) {
-                WebElement link = getWebElement(li, "a");
+                WebElement link = CommonUtils.getWebElement(li, "a");
                 if (!CommonUtils.isNull(link)) {
                     if (!CommonUtils.isNull(link.getDomProperty("href"))) {
                         link.click();
@@ -665,39 +664,39 @@ public class MeetingService {
                 for (int i = 0; i < columns.size(); i++) {
                     if (j == 2 && i == 0) {
                         element = columns.get(i);
-                        span = getWebElement(element, "span");
+                        span = CommonUtils.getWebElement(element, "span");
                         if (CommonUtils.isNull(span))
-                            span = getWebElement(element, "input");
+                            span = CommonUtils.getWebElement(element, "input");
                         else
-                            span = getWebElement(span, "input");
+                            span = CommonUtils.getWebElement(span, "input");
                         decisionsMade.setUnitCount(CommonUtils.longValue(span.getDomProperty("value").replace(",", "")));
 
                     } else if (j == 2 && i == 1) {
                         element = columns.get(i);
-                        span = getWebElement(element, "span");
+                        span = CommonUtils.getWebElement(element, "span");
                         if (CommonUtils.isNull(span))
-                            span = getWebElement(element, "input");
+                            span = CommonUtils.getWebElement(element, "input");
                         else
-                            span = getWebElement(span, "input");
+                            span = CommonUtils.getWebElement(span, "input");
                         decisionsMade.setNominalValue(CommonUtils.longValue(span.getDomProperty("value").replace(",", "")));
                     } else if (j == 2 && i == 2) {
                         element = columns.get(i);
-                        span = getWebElement(element, "span");
+                        span = CommonUtils.getWebElement(element, "span");
                         if (CommonUtils.isNull(span))
-                            span = getWebElement(element, "input");
+                            span = CommonUtils.getWebElement(element, "input");
                         else
-                            span = getWebElement(span, "input");
+                            span = CommonUtils.getWebElement(span, "input");
                         decisionsMade.setAmount(CommonUtils.longValue(span.getDomProperty("value").replace(",", "")));
                     } else if ((j == 2 && i == 3) || (j > 2 && i == 0)) {
                         element = columns.get(i);
-                        span = getWebElement(element, "span");
+                        span = CommonUtils.getWebElement(element, "span");
                         if (CommonUtils.isNull(span)) {
-                            span = getWebElement(element, "span");
+                            span = CommonUtils.getWebElement(element, "span");
                             if (CommonUtils.isNull(span))
-                                span = getWebElement(element, "input");
+                                span = CommonUtils.getWebElement(element, "input");
                         } else {
                             element = span;
-                            span = getWebElement(span, "span");
+                            span = CommonUtils.getWebElement(span, "span");
                             if (CommonUtils.isNull(span))
                                 span = element;
                         }
@@ -705,14 +704,14 @@ public class MeetingService {
                         decisionsMade.setCash(CommonUtils.longValue(vlaue.replace(",", "")));
                     } else if ((j == 2 && i == 4) || (j > 2 && i == 1)) {
                         element = columns.get(i);
-                        span = getWebElement(element, "span");
+                        span = CommonUtils.getWebElement(element, "span");
                         if (CommonUtils.isNull(span)) {
-                            span = getWebElement(element, "span");
+                            span = CommonUtils.getWebElement(element, "span");
                             if (CommonUtils.isNull(span))
-                                span = getWebElement(element, "input");
+                                span = CommonUtils.getWebElement(element, "input");
                         } else {
                             element = span;
-                            span = getWebElement(span, "span");
+                            span = CommonUtils.getWebElement(span, "span");
                             if (CommonUtils.isNull(span))
                                 span = element;
                         }
@@ -720,14 +719,14 @@ public class MeetingService {
                         decisionsMade.setAccumulatedProfit(CommonUtils.longValue(vlaue.replace(",", "")));
                     } else if ((j == 2 && i == 5) || (j > 2 && i == 2)) {
                         element = columns.get(i);
-                        span = getWebElement(element, "span");
+                        span = CommonUtils.getWebElement(element, "span");
                         if (CommonUtils.isNull(span)) {
-                            span = getWebElement(element, "span");
+                            span = CommonUtils.getWebElement(element, "span");
                             if (CommonUtils.isNull(span))
-                                span = getWebElement(element, "input");
+                                span = CommonUtils.getWebElement(element, "input");
                         } else {
                             element = span;
-                            span = getWebElement(span, "span");
+                            span = CommonUtils.getWebElement(span, "span");
                             if (CommonUtils.isNull(span))
                                 span = element;
                         }
@@ -735,14 +734,14 @@ public class MeetingService {
                         decisionsMade.setSavedUp(CommonUtils.longValue(vlaue.replace(",", "")));
                     } else if ((j == 2 && i == 6) || (j > 2 && i == 3)) {
                         element = columns.get(i);
-                        span = getWebElement(element, "span");
+                        span = CommonUtils.getWebElement(element, "span");
                         if (CommonUtils.isNull(span)) {
-                            span = getWebElement(element, "span");
+                            span = CommonUtils.getWebElement(element, "span");
                             if (CommonUtils.isNull(span))
-                                span = getWebElement(element, "input");
+                                span = CommonUtils.getWebElement(element, "input");
                         } else {
                             element = span;
-                            span = getWebElement(span, "span");
+                            span = CommonUtils.getWebElement(span, "span");
                             if (CommonUtils.isNull(span))
                                 span = element;
                         }
@@ -750,14 +749,14 @@ public class MeetingService {
                         decisionsMade.setAsset(CommonUtils.longValue(vlaue.replace(",", "")));
                     } else if ((j == 2 && i == 7) || (j > 2 && i == 4)) {
                         element = columns.get(i);
-                        span = getWebElement(element, "span");
+                        span = CommonUtils.getWebElement(element, "span");
                         if (CommonUtils.isNull(span)) {
-                            span = getWebElement(element, "span");
+                            span = CommonUtils.getWebElement(element, "span");
                             if (CommonUtils.isNull(span))
-                                span = getWebElement(element, "input");
+                                span = CommonUtils.getWebElement(element, "input");
                         } else {
                             element = span;
-                            span = getWebElement(span, "span");
+                            span = CommonUtils.getWebElement(span, "span");
                             if (CommonUtils.isNull(span))
                                 span = element;
                         }
@@ -765,14 +764,14 @@ public class MeetingService {
                         decisionsMade.setStock(CommonUtils.longValue(vlaue.replace(",", "")));
                     } else if ((j == 2 && i == 8) || (j > 2 && i == 5)) {
                         element = columns.get(i);
-                        span = getWebElement(element, "span");
+                        span = CommonUtils.getWebElement(element, "span");
                         if (CommonUtils.isNull(span)) {
-                            span = getWebElement(element, "span");
+                            span = CommonUtils.getWebElement(element, "span");
                             if (CommonUtils.isNull(span))
-                                span = getWebElement(element, "input");
+                                span = CommonUtils.getWebElement(element, "input");
                         } else {
                             element = span;
-                            span = getWebElement(span, "span");
+                            span = CommonUtils.getWebElement(span, "span");
                             if (CommonUtils.isNull(span))
                                 span = element;
                         }
@@ -780,19 +779,19 @@ public class MeetingService {
                         decisionsMade.setEntryCash(CommonUtils.longValue(vlaue.replace(",", "")));
                     } else if ((j == 2 && i == 9) || (j > 2 && i == 6)) {
                         element = columns.get(i);
-                        span = getWebElement(element, "span");
+                        span = CommonUtils.getWebElement(element, "span");
                         if (CommonUtils.isNull(span))
-                            span = getWebElement(element, "input");
+                            span = CommonUtils.getWebElement(element, "input");
                         else
-                            span = getWebElement(span, "input");
+                            span = CommonUtils.getWebElement(span, "input");
                         decisionsMade.setCapitalIncrease(CommonUtils.longValue(span.getDomProperty("value").replace(",", "")));
                     } else if ((j == 2 && i == 10) || (j > 2 && i == 7)) {
                         element = columns.get(i);
-                        span = getWebElement(element, "span");
+                        span = CommonUtils.getWebElement(element, "span");
                         if (CommonUtils.isNull(span))
-                            span = getWebElement(element, "input");
+                            span = CommonUtils.getWebElement(element, "input");
                         else
-                            span = getWebElement(span, "input");
+                            span = CommonUtils.getWebElement(span, "input");
                         decisionsMade.setPercentIncrease(CommonUtils.longValue(span.getDomProperty("value").replace(",", "")));
                     } else if ((j == 2 && i == 11) || (j > 2 && i == 8)) {
                         decisionsMade.setApproveType(columns.get(i).getText().trim());
@@ -808,46 +807,6 @@ public class MeetingService {
             decisionsMades.get(i).setAmount(decisionsMades.get(0).getAmount());
         }
         return decisionsMades;
-    }
-
-    private WebElement getWebElement(WebElement webElement, String tagName) {
-        try {
-            return webElement.findElement(By.tagName(tagName));
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private WebElement getWebElementById(WebElement webElement, String id) {
-        try {
-            return webElement.findElement(By.id(id));
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private WebElement getWebElementById(WebDriver webDriver, String id) {
-        try {
-            return webDriver.findElement(By.id(id));
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private WebElement getWebElementByClass(WebDriver webDriver, String className) {
-        try {
-            return webDriver.findElement(By.className(className));
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private WebElement getWebElementByTitle(WebDriver webDriver, String title) {
-        try {
-            return webDriver.findElement(By.xpath("//*[@title='" + title + "']"));
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     private List<PeoplePrsentInMeeting> getPeoplePrsentInMeetings(WebElement table) {
