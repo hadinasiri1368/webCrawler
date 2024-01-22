@@ -1,13 +1,21 @@
 package org.webCrawler.api;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.webCrawler.common.CommonUtils;
 import org.webCrawler.common.DateUtil;
+import org.webCrawler.common.LettersTypes;
 import org.webCrawler.dto.*;
-import org.webCrawler.service.GenericService;
+import org.webCrawler.model.CodalShareholderMeeting;
+import org.webCrawler.model.LetterType;
+import org.webCrawler.model.MeetingType;
+import org.webCrawler.service.JPAGenericService;
+import org.webCrawler.service.MongoGenericService;
 import org.webCrawler.service.InstrumentService;
 import org.webCrawler.service.MeetingService;
 
@@ -20,27 +28,41 @@ import java.util.List;
 public class API {
 
     @Autowired
-    GenericService<ExtraAssemblyDto> extraAssembl;
+    MongoGenericService<ExtraAssemblyDto> extraAssembl;
 
     @Autowired
-    GenericService<DecisionDto> decision;
+    MongoGenericService<DecisionDto> decision;
 
     @Autowired
-    GenericService<CapitalIncreaseDto> capitalIncrease;
+    MongoGenericService<CapitalIncreaseDto> capitalIncrease;
 
     @Autowired
-    GenericService<PriorityOrBuyShareDto> priorityOrBuyShare;
+    MongoGenericService<PriorityOrBuyShareDto> priorityOrBuyShare;
+
     @Autowired
-    GenericService<InterimStatementDto> InterimStatement;
+    MongoGenericService<InterimStatementDto> interimStatementService;
+    @Autowired
+    MongoGenericService<InstrumentInfo> instrumentInfoService;
+
+    @Autowired
+    MongoGenericService<MarketStatusDto> marketStatusService;
+
+    @Autowired
+    MongoGenericService<MarketStatusPerBourseAccountDto> marketStatusPerBourseAccount;
+
+    @Autowired
+    JPAGenericService<CodalShareholderMeeting> codalShareholderMeetingGenericService;
 
     @GetMapping(path = "/api/extraAssemblyShareholderMeeting")
     public List<ExtraAssemblyDto> getExtraAssemblyShareholderMeeting(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
         checkInputData(startDate, endDate);
         List<ExtraAssemblyDto> extraAssemblyDtos = new ArrayList<>();
         MeetingService meetingService1 = new MeetingService(startDate, endDate);
-        extraAssemblyDtos = meetingService1.getExtraAssemblyList("22");
+        extraAssemblyDtos = meetingService1.getExtraAssemblyList(LettersTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING.getLettersTypeValue().toString());
+        CodalShareholderMeeting codalShareholderMeeting = new CodalShareholderMeeting();
         for (ExtraAssemblyDto item : extraAssemblyDtos) {
             extraAssembl.add(item);
+            codalShareholderMeetingGenericService.insert(CommonUtils.convertTo(item, LettersTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING));
         }
         return extraAssemblyDtos;
     }
@@ -160,7 +182,7 @@ public class API {
         MeetingService meetingService1 = new MeetingService(startDate, endDate);
         interimStatementDtos.addAll(meetingService1.getInterimStatementDto("6"));
         for (InterimStatementDto item : interimStatementDtos) {
-            InterimStatement.add(item);
+            interimStatementService.add(item);
         }
         return interimStatementDtos;
     }
@@ -170,7 +192,28 @@ public class API {
         InstrumentInfo instrumentInfo = new InstrumentInfo();
         InstrumentService instrumentService = new InstrumentService(bourseAccount);
         instrumentInfo = instrumentService.getInstrumentInfo();
+        instrumentInfoService.add(instrumentInfo);
         return instrumentInfo;
+    }
+
+    @GetMapping(path = "/api/marketStatus")
+    public MarketStatusDto getMarketStatus() throws Exception {
+        MarketStatusDto marketStatusDto = new MarketStatusDto();
+        InstrumentService instrumentService = new InstrumentService();
+        marketStatusDto = instrumentService.getMarketStatusDto();
+        marketStatusService.add(marketStatusDto);
+        return marketStatusDto;
+    }
+
+    @GetMapping(path = "/api/marketStatusPerBourseAccountGroup")
+    public List<MarketStatusPerBourseAccountDto> getMarketStatusPerBourseAccount() throws Exception {
+        List<MarketStatusPerBourseAccountDto> marketStatusDto = new ArrayList<>();
+        InstrumentService instrumentService = new InstrumentService();
+        marketStatusDto = instrumentService.getMarketStatusPerBourseAccountDto();
+        for (MarketStatusPerBourseAccountDto marketStatusPerBourseAccountDto : marketStatusDto) {
+            marketStatusPerBourseAccount.add(marketStatusPerBourseAccountDto);
+        }
+        return marketStatusDto;
     }
 
     private void checkInputData(String startDate, String endDate) throws Exception {

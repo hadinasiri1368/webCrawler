@@ -13,7 +13,8 @@ import java.util.List;
 
 public class MeetingService {
     private String date;
-    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=شپنا";
+    private String webUrl = "https://www.codal.ir/ReportList.aspx?search";
+//    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=شپنا";
 //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=ومعلم";
 
     public MeetingService(String date) {
@@ -617,10 +618,10 @@ public class MeetingService {
                 Thread.sleep(10000);
                 String company = webDriver.findElement(By.id("lblCompany")).getText();
                 if (company.indexOf(":") != -1) {
-                    extraAssemblyDto.setBourseAccount(webDriver.findElement(By.id("lblCompany")).getText().split(":")[1].trim());
+                    extraAssemblyDto.setBourseAccount(CommonUtils.getBourseAccount(webDriver.findElement(By.id("lblCompany")).getText().split(":")[1].trim()));
                     extraAssemblyDto.setCompany(webDriver.findElement(By.id("lblCompany")).getText().split(":")[0].trim().split("-")[0].trim());
                 } else {
-                    extraAssemblyDto.setBourseAccount(company);
+                    extraAssemblyDto.setBourseAccount(CommonUtils.getBourseAccount(company));
                 }
                 elements = webDriver.findElements(By.tagName("bdo"));
                 extraAssemblyDto.setMeetingDate(elements.get(2).getText());

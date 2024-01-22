@@ -3,12 +3,19 @@ package org.webCrawler.service;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Select;
 import org.webCrawler.common.CommonUtils;
 import org.webCrawler.common.DateUtil;
 import org.webCrawler.config.Selenium;
 import org.webCrawler.dto.InstrumentInfo;
+import org.webCrawler.dto.MarketStatusDetailDto;
+import org.webCrawler.dto.MarketStatusDto;
+import org.webCrawler.dto.MarketStatusPerBourseAccountDto;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class InstrumentService {
@@ -16,6 +23,10 @@ public class InstrumentService {
 
     public InstrumentService(String bourseAccount) {
         this.webUrl += bourseAccount;
+    }
+
+    public InstrumentService() {
+        this.webUrl = "https://databourse.ir/stats";
     }
 
     public InstrumentInfo getInstrumentInfo() throws Exception {
@@ -90,5 +101,92 @@ public class InstrumentService {
             instrumentInfo.setChangeOwnership(CommonUtils.longValue(webElement.getAttribute("innerHTML")));
         }
         return instrumentInfo;
+    }
+
+    public List<MarketStatusPerBourseAccountDto> getMarketStatusPerBourseAccountDto() throws Exception {
+        List<MarketStatusPerBourseAccountDto> marketStatusPerBourseAccountDtos = new ArrayList<>();
+        MarketStatusPerBourseAccountDto marketStatusPerBourseAccountDto = new MarketStatusPerBourseAccountDto();
+        WebDriver webDriverMain = new Selenium().webDriver();
+//        Thread.sleep(10000);
+        webDriverMain.get(webUrl);
+//        Thread.sleep(10000);
+        WebElement groupList = CommonUtils.getWebElementByClass(webDriverMain, "groupList");
+        if (!CommonUtils.isNull(groupList)) {
+            WebElement element = groupList.findElement(By.tagName("select"));
+//            Select select = new Select(element);
+            List<WebElement> allOptions = element.findElements(By.xpath(".//option"));
+            for (WebElement option : allOptions) {
+                String value = option.getDomAttribute("value");
+                WebDriver webDrive = new Selenium().webDriver();
+//                Thread.sleep(10000);
+                if (!CommonUtils.isNull(value)) {
+                    marketStatusPerBourseAccountDto = new MarketStatusPerBourseAccountDto();
+                    webDrive.get(webUrl + "/" + option.getDomProperty("value"));
+//                    Thread.sleep(10000);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm:ss");
+                    Calendar calendar = Calendar.getInstance();
+                    marketStatusPerBourseAccountDto.setDate(DateUtil.getJalaliDate(LocalDate.now()));
+                    marketStatusPerBourseAccountDto.setTime(dateFormat.format(calendar.getTime()));
+                    marketStatusPerBourseAccountDto.setGroupName(option.getAttribute("innerHTML".trim()));
+                    List<WebElement> statList = CommonUtils.getWebElementsByClass(webDrive, "statList");
+                    int index = 0;
+                    for (WebElement item : statList) {
+                        WebElement barGraph = item.findElement(By.className("barGraph"));
+                        List<WebElement> barRow = barGraph.findElements(By.className("barRow"));
+                        if (index == 0) {
+                            marketStatusPerBourseAccountDto.setEnteredMoney(getMarketStatusDetailDto(barRow));
+                        } else if (index == 1) {
+                            marketStatusPerBourseAccountDto.setOutMoney(getMarketStatusDetailDto(barRow));
+                        }
+                        index++;
+                    }
+                    marketStatusPerBourseAccountDtos.add(marketStatusPerBourseAccountDto);
+                }
+                webDrive.close();
+            }
+            webDriverMain.close();
+        }
+        return marketStatusPerBourseAccountDtos;
+    }
+
+    public MarketStatusDto getMarketStatusDto() throws Exception {
+        MarketStatusDto marketStatusDto = new MarketStatusDto();
+        WebDriver webDriverMain = new Selenium().webDriver();
+        Thread.sleep(10000);
+        webDriverMain.get(webUrl);
+        Thread.sleep(10000);
+        marketStatusDto.setDate(DateUtil.getJalaliDate(LocalDate.now()));
+        SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm:ss");
+        Calendar calendar = Calendar.getInstance();
+        marketStatusDto.setTime(dateFormat.format(calendar.getTime()));
+        WebElement div = CommonUtils.getWebElementById(webDriverMain, "daily-invest");
+        List<WebElement> elementList = div.findElements(By.className("statList"));
+        int index = 0;
+        for (WebElement element : elementList) {
+            WebElement barGraph = element.findElement(By.className("barGraph"));
+            List<WebElement> barRow = barGraph.findElements(By.className("barRow"));
+            if (index == 0) {
+                marketStatusDto.setEnteredMoney(getMarketStatusDetailDto(barRow));
+            } else if (index == 1) {
+                marketStatusDto.setOutMoney(getMarketStatusDetailDto(barRow));
+            } else if (index == 2) {
+                marketStatusDto.setCompanyEnteredMoney(getMarketStatusDetailDto(barRow));
+            } else if (index == 3) {
+                marketStatusDto.setCompanyOutMoney(getMarketStatusDetailDto(barRow));
+            }
+            index++;
+        }
+        return marketStatusDto;
+    }
+
+    private List<MarketStatusDetailDto> getMarketStatusDetailDto(List<WebElement> barRow) {
+        List<MarketStatusDetailDto> marketStatusDetailDtos = new ArrayList<>();
+        for (WebElement item : barRow) {
+            WebElement lable = item.findElement(By.className("label"));
+            WebElement bar = item.findElement(By.className("bar"));
+            bar = bar.findElement(By.tagName("div"));
+            marketStatusDetailDtos.add(new MarketStatusDetailDto(lable.getDomProperty("title").trim(), CommonUtils.doubleValue(bar.getDomProperty("title"))));
+        }
+        return marketStatusDetailDtos;
     }
 }

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.webCrawler.repository.MongoRepository;
 
 @Service
-public class GenericService<T> {
+public class MongoGenericService<T> {
     @Autowired
     MongoRepository<T> repository;
 
