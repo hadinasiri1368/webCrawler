@@ -3,7 +3,10 @@ package org.webCrawler.common;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.webCrawler.dto.CapitalIncreaseDto;
+import org.webCrawler.dto.DecisionDto;
 import org.webCrawler.dto.ExtraAssemblyDto;
+import org.webCrawler.dto.PriorityOrBuyShareDto;
 import org.webCrawler.model.CodalShareholderMeeting;
 import org.webCrawler.model.LetterType;
 import org.webCrawler.model.MeetingStatus;
@@ -18,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CommonUtils {
-    private static final String CHROMEDRIVER_EXE = "D:\\java\\webCrawler\\chromedriver-win64\\chromedriver.exe";
+    private static final String CHROMEDRIVER_EXE = "F:\\java\\webCrawler\\chromedriver-win64\\chromedriver.exe";
 
     public static String findFile() {
         try {
@@ -203,7 +206,7 @@ public class CommonUtils {
         codalShareholderMeeting.setUrl(extraAssemblyDto.getLink());
         codalShareholderMeeting.setMeetingDate(extraAssemblyDto.getMeetingDate());
         codalShareholderMeeting.setMeetingStatus(MeetingStatus.builder().id(MeetingStatuses.TRUE_SHAREHOLDER_MEETING.getValue()).build());
-        if (!CommonUtils.isNull(extraAssemblyDto.getDecisionsMades()) && extraAssemblyDto.getDecisionsMades().size() > 0) {
+        if (!CommonUtils.isNull(extraAssemblyDto.getDecisionsMades()) && !extraAssemblyDto.getDecisionsMades().isEmpty()) {
             codalShareholderMeeting.setLastAssetAmount(extraAssemblyDto.getDecisionsMades().get(0).getAmount());
             codalShareholderMeeting.setIpoRecapAmount(extraAssemblyDto.getDecisionsMades().get(0).getCash());
             codalShareholderMeeting.setGiftRecapAmount(extraAssemblyDto.getDecisionsMades().get(0).getAccumulatedProfit());
@@ -219,10 +222,87 @@ public class CommonUtils {
 
         codalShareholderMeeting.setLetterType(LetterType.builder().id(lettersTypes.getLettersTypeValue()).build());
         codalShareholderMeeting.setMeetingType(MeetingType.builder().id(MeetingTypes.ANNUAL_SAHEHOLDER_MEETING.getValue()).build());
-        if (lettersTypes.getLettersTypeValue() == LettersTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING.getLettersTypeValue() ||
-                lettersTypes.getLettersTypeValue() == LettersTypes.SUMMARY_EXTRAASSEMBLY_SAHEHOLDER_MEETING.getLettersTypeValue() ||
-                lettersTypes.getLettersTypeValue() == LettersTypes.CAPITAL_INCREASE_SAHEHOLDER_MEETING.getLettersTypeValue())
+        if (lettersTypes.getLettersTypeValue().equals(LettersTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING.getLettersTypeValue()) ||
+                lettersTypes.getLettersTypeValue().equals(LettersTypes.SUMMARY_EXTRAASSEMBLY_SAHEHOLDER_MEETING.getLettersTypeValue()) ||
+                lettersTypes.getLettersTypeValue().equals(LettersTypes.CAPITAL_INCREASE_SAHEHOLDER_MEETING.getLettersTypeValue()))
             codalShareholderMeeting.setMeetingType(MeetingType.builder().id(MeetingTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING.getValue()).build());
         return codalShareholderMeeting;
     }
+
+    public static CodalShareholderMeeting convertTo(DecisionDto decisionDto, LettersTypes lettersTypes) {
+        CodalShareholderMeeting codalShareholderMeeting = new CodalShareholderMeeting();
+        codalShareholderMeeting.setBourseAccount(decisionDto.getBourseAccount());
+        codalShareholderMeeting.setUrl(decisionDto.getLink());
+        codalShareholderMeeting.setMeetingDate(decisionDto.getMeetingDate());
+        codalShareholderMeeting.setMeetingStatus(MeetingStatus.builder().id(MeetingStatuses.TRUE_SHAREHOLDER_MEETING.getValue()).build());
+        if (!CommonUtils.isNull(decisionDto.getAssemblyDecisions()) && !decisionDto.getAssemblyDecisions().isEmpty()) {
+            codalShareholderMeeting.setShareProfit(decisionDto.getAssemblyDecisions().stream().filter(a -> a.getDescription().equals("سود نقدی هر سهم (ریال)")).findFirst().get().getAmount());
+        } else
+            codalShareholderMeeting.setMeetingStatus(MeetingStatus.builder().id(MeetingStatuses.NOT_HAVE_TABLE.getValue()).build());
+
+        codalShareholderMeeting.setLetterType(LetterType.builder().id(lettersTypes.getLettersTypeValue()).build());
+        codalShareholderMeeting.setMeetingType(MeetingType.builder().id(MeetingTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING.getValue()).build());
+        if (lettersTypes.getLettersTypeValue().equals(LettersTypes.SUMMARY_ANNUAL_SAHEHOLDER_MEETING.getLettersTypeValue()) ||
+                lettersTypes.getLettersTypeValue().equals(LettersTypes.EXTRAORDINARY_ANNUAL_SAHEHOLDER_MEETING.getLettersTypeValue()) ||
+                lettersTypes.getLettersTypeValue().equals(LettersTypes.SUMMARY_EXTRAORDINARY_ANNUAL_SAHEHOLDER_MEETING.getLettersTypeValue()))
+            codalShareholderMeeting.setMeetingType(MeetingType.builder().id(MeetingTypes.ANNUAL_SAHEHOLDER_MEETING.getValue()).build());
+
+        return codalShareholderMeeting;
+    }
+
+    public static CodalShareholderMeeting convertTo(CapitalIncreaseDto capitalIncreaseDto, LettersTypes lettersTypes) {
+        CodalShareholderMeeting codalShareholderMeeting = new CodalShareholderMeeting();
+        codalShareholderMeeting.setBourseAccount(capitalIncreaseDto.getBourseAccount());
+        codalShareholderMeeting.setUrl(capitalIncreaseDto.getLink());
+        codalShareholderMeeting.setMeetingDate(capitalIncreaseDto.getMeetingDate());
+        codalShareholderMeeting.setMeetingStatus(MeetingStatus.builder().id(MeetingStatuses.TRUE_SHAREHOLDER_MEETING.getValue()).build());
+        if (!CommonUtils.isNull(capitalIncreaseDto.getDecisionsBoards()) && !capitalIncreaseDto.getDecisionsBoards().isEmpty()) {
+            codalShareholderMeeting.setLastAssetAmount(capitalIncreaseDto.getDecisionsBoards().get(0).getAmount());
+            codalShareholderMeeting.setIpoRecapAmount(capitalIncreaseDto.getDecisionsBoards().get(0).getCash());
+            codalShareholderMeeting.setGiftRecapAmount(capitalIncreaseDto.getDecisionsBoards().get(0).getAccumulatedProfit());
+            codalShareholderMeeting.setSavedRecap(capitalIncreaseDto.getDecisionsBoards().get(0).getSavedUp());
+            codalShareholderMeeting.setExtraReErvalRecap(capitalIncreaseDto.getDecisionsBoards().get(0).getStock());
+            codalShareholderMeeting.setStockDifferenceRecap(capitalIncreaseDto.getDecisionsBoards().get(0).getEntryCash());
+            codalShareholderMeeting.setDeprivationRight(capitalIncreaseDto.getDecisionsBoards().get(0).getCapitalIncrease());
+            LocalDate md = DateUtil.getGregorianDate(codalShareholderMeeting.getMeetingDate()).plusMonths(2);
+            codalShareholderMeeting.setIpoDate(DateUtil.getJalaliDate(md));
+            codalShareholderMeeting.setRenewedIpoDate(DateUtil.getJalaliDate(md));
+        } else
+            codalShareholderMeeting.setMeetingStatus(MeetingStatus.builder().id(MeetingStatuses.NOT_HAVE_TABLE.getValue()).build());
+
+        codalShareholderMeeting.setLetterType(LetterType.builder().id(lettersTypes.getLettersTypeValue()).build());
+        codalShareholderMeeting.setMeetingType(MeetingType.builder().id(MeetingTypes.ANNUAL_SAHEHOLDER_MEETING.getValue()).build());
+        if (lettersTypes.getLettersTypeValue().equals(LettersTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING.getLettersTypeValue()) ||
+                lettersTypes.getLettersTypeValue().equals(LettersTypes.SUMMARY_EXTRAASSEMBLY_SAHEHOLDER_MEETING.getLettersTypeValue()) ||
+                lettersTypes.getLettersTypeValue().equals(LettersTypes.CAPITAL_INCREASE_SAHEHOLDER_MEETING.getLettersTypeValue()))
+            codalShareholderMeeting.setMeetingType(MeetingType.builder().id(MeetingTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING.getValue()).build());
+        return codalShareholderMeeting;
+    }
+
+    public static CodalShareholderMeeting convertTo(PriorityOrBuyShareDto priorityOrBuyShareDto, LettersTypes lettersTypes) {
+        CodalShareholderMeeting codalShareholderMeeting = new CodalShareholderMeeting();
+        codalShareholderMeeting.setBourseAccount(priorityOrBuyShareDto.getBourseAccount());
+        codalShareholderMeeting.setUrl(priorityOrBuyShareDto.getLink());
+        codalShareholderMeeting.setMeetingDate(priorityOrBuyShareDto.getMeetingDate());
+        codalShareholderMeeting.setMeetingStatus(MeetingStatus.builder().id(MeetingStatuses.TRUE_SHAREHOLDER_MEETING.getValue()).build());
+
+        if (lettersTypes.getLettersTypeValue().equals(LettersTypes.PRIORITYTIME_SAHEHOLDER_MEETING.getLettersTypeValue())) {
+            codalShareholderMeeting.setIpoDate(priorityOrBuyShareDto.getEndDate());
+            LocalDate md = DateUtil.getGregorianDate(priorityOrBuyShareDto.getEndDate()).plusDays(1);
+            codalShareholderMeeting.setIpoDate(DateUtil.getJalaliDate(md));
+            codalShareholderMeeting.setRenewedIpoDate(DateUtil.getJalaliDate(md));
+        }
+        else if(lettersTypes.getLettersTypeValue().equals(LettersTypes.POSTULATEDISCUSSION_SAHEHOLDER_MEETING.getLettersTypeValue())) {
+            codalShareholderMeeting.setIpoDate(priorityOrBuyShareDto.getEndDate());
+            LocalDate md = DateUtil.getGregorianDate(priorityOrBuyShareDto.getEndDate()).plusDays(1);
+            codalShareholderMeeting.setRenewedIpoDate(DateUtil.getJalaliDate(md));
+        }
+        else if (lettersTypes.getLettersTypeValue().equals(LettersTypes.CAPITAL_INCREASE_REGISTRATION.getLettersTypeValue())){
+            codalShareholderMeeting.setConfirmDate(priorityOrBuyShareDto.getConfirmDate());
+        }
+        codalShareholderMeeting.setLetterType(LetterType.builder().id(lettersTypes.getLettersTypeValue()).build());
+        codalShareholderMeeting.setMeetingType(MeetingType.builder().id(MeetingTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING.getValue()).build());
+        return codalShareholderMeeting;
+    }
+
 }

@@ -414,10 +414,10 @@ public class MeetingService {
         return capitalIncreaseDto;
     }
 
-    public List<CapitalIncreaseDto> getCapitalIncrease() throws Exception {
+    public List<CapitalIncreaseDto> getCapitalIncrease(String letterType) throws Exception {
         CapitalIncreaseDto capitalIncreaseDto = new CapitalIncreaseDto();
         List<CapitalIncreaseDto> capitalIncreaseDtos = new ArrayList<>();
-        this.webUrl += String.format("&LetterType=%s", "24");
+        this.webUrl += String.format("&LetterType=%s", letterType);
         WebDriver webDriverMain = new Selenium().webDriver();
         Thread.sleep(10000);
         webDriverMain.get(webUrl);
@@ -434,6 +434,18 @@ public class MeetingService {
             Thread.sleep(10000);
             webDriver.get(link);
             Thread.sleep(10000);
+
+            String company = webDriver.findElement(By.id("lblCompany")).getText();
+            capitalIncreaseDto.setBourseAccount(company);
+            if (company.indexOf(":") != -1) {
+                capitalIncreaseDto.setBourseAccount(webDriver.findElement(By.id("lblCompany")).getText().split(":")[1].trim());
+            }
+
+            WebElement span = CommonUtils.getWebElementById(webDriver, "lblLastBoardMemberInvitation");
+            if (!CommonUtils.isNull(span)) {
+                capitalIncreaseDto.setMeetingDate(span.getText().trim());
+            }
+
             WebElement table = CommonUtils.getWebElementById(webDriver, "tblCapitalIncrease");
             if (!CommonUtils.isNull(table)) {
                 capitalIncreaseDto.setDecisionsBoards(getDecisionsBoard(table));
