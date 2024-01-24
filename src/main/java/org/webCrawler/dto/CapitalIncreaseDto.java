@@ -13,5 +13,8 @@ import java.util.List;
 @Setter
 public class CapitalIncreaseDto {
     private String link;
+    private String bourseAccount;
+    private String company;
+    private String meetingDate;
     private List<DecisionsBoard> decisionsBoards;
 }

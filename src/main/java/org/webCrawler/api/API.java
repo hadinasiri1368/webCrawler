@@ -27,28 +27,28 @@ import java.util.List;
 @RestController
 public class API {
 
-    @Autowired
-    MongoGenericService<ExtraAssemblyDto> extraAssembl;
-
-    @Autowired
-    MongoGenericService<DecisionDto> decision;
-
-    @Autowired
-    MongoGenericService<CapitalIncreaseDto> capitalIncrease;
-
-    @Autowired
-    MongoGenericService<PriorityOrBuyShareDto> priorityOrBuyShare;
-
-    @Autowired
-    MongoGenericService<InterimStatementDto> interimStatementService;
-    @Autowired
-    MongoGenericService<InstrumentInfo> instrumentInfoService;
-
-    @Autowired
-    MongoGenericService<MarketStatusDto> marketStatusService;
-
-    @Autowired
-    MongoGenericService<MarketStatusPerBourseAccountDto> marketStatusPerBourseAccount;
+//    @Autowired
+//    MongoGenericService<ExtraAssemblyDto> extraAssembl;
+//
+//    @Autowired
+//    MongoGenericService<DecisionDto> decision;
+//
+//    @Autowired
+//    MongoGenericService<CapitalIncreaseDto> capitalIncrease;
+//
+//    @Autowired
+//    MongoGenericService<PriorityOrBuyShareDto> priorityOrBuyShare;
+//
+//    @Autowired
+//    MongoGenericService<InterimStatementDto> interimStatementService;
+//    @Autowired
+//    MongoGenericService<InstrumentInfo> instrumentInfoService;
+//
+//    @Autowired
+//    MongoGenericService<MarketStatusDto> marketStatusService;
+//
+//    @Autowired
+//    MongoGenericService<MarketStatusPerBourseAccountDto> marketStatusPerBourseAccount;
 
     @Autowired
     JPAGenericService<CodalShareholderMeeting> codalShareholderMeetingGenericService;
@@ -61,7 +61,7 @@ public class API {
         extraAssemblyDtos = meetingService1.getExtraAssemblyList(LettersTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING.getLettersTypeValue().toString());
         CodalShareholderMeeting codalShareholderMeeting = new CodalShareholderMeeting();
         for (ExtraAssemblyDto item : extraAssemblyDtos) {
-            extraAssembl.add(item);
+//            extraAssembl.add(item);
             codalShareholderMeetingGenericService.insert(CommonUtils.convertTo(item, LettersTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING));
         }
         return extraAssemblyDtos;
@@ -72,9 +72,10 @@ public class API {
         checkInputData(startDate, endDate);
         List<ExtraAssemblyDto> extraAssemblyDtos = new ArrayList<>();
         MeetingService meetingService1 = new MeetingService(startDate, endDate);
-        extraAssemblyDtos.addAll(meetingService1.getExtraAssemblyList("2222"));
+        extraAssemblyDtos = meetingService1.getExtraAssemblyList(LettersTypes.SUMMARY_EXTRAASSEMBLY_SAHEHOLDER_MEETING.getLettersTypeValue().toString());
         for (ExtraAssemblyDto item : extraAssemblyDtos) {
-            extraAssembl.add(item);
+//            extraAssembl.add(item);
+            codalShareholderMeetingGenericService.insert(CommonUtils.convertTo(item, LettersTypes.SUMMARY_EXTRAASSEMBLY_SAHEHOLDER_MEETING));
         }
         return extraAssemblyDtos;
     }
@@ -84,9 +85,10 @@ public class API {
         checkInputData(startDate, endDate);
         List<DecisionDto> decisionDtos = new ArrayList<>();
         MeetingService meetingService1 = new MeetingService(startDate, endDate);
-        decisionDtos.addAll(meetingService1.getDecisionList("20"));
+        decisionDtos = meetingService1.getDecisionList(LettersTypes.ANNUAL_SAHEHOLDER_MEETING.getLettersTypeValue().toString());
         for (DecisionDto item : decisionDtos) {
-            decision.add(item);
+//            decision.add(item);
+            codalShareholderMeetingGenericService.insert(CommonUtils.convertTo(item, LettersTypes.ANNUAL_SAHEHOLDER_MEETING));
         }
         return decisionDtos;
     }
@@ -96,9 +98,10 @@ public class API {
         checkInputData(startDate, endDate);
         List<CapitalIncreaseDto> capitalIncreaseDtos = new ArrayList<>();
         MeetingService meetingService1 = new MeetingService(startDate, endDate);
-        capitalIncreaseDtos.addAll(meetingService1.getCapitalIncrease());
+        capitalIncreaseDtos = meetingService1.getCapitalIncrease(LettersTypes.CAPITAL_INCREASE_SAHEHOLDER_MEETING.getLettersTypeValue().toString());
         for (CapitalIncreaseDto item : capitalIncreaseDtos) {
-            capitalIncrease.add(item);
+//            capitalIncrease.add(item);
+            codalShareholderMeetingGenericService.insert(CommonUtils.convertTo(item, LettersTypes.CAPITAL_INCREASE_SAHEHOLDER_MEETING));
         }
         return capitalIncreaseDtos;
     }
@@ -106,37 +109,40 @@ public class API {
     @GetMapping(path = "/api/priorityOrBuyShare")
     public List<PriorityOrBuyShareDto> getPriorityOrBuyShare(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
         checkInputData(startDate, endDate);
-        List<PriorityOrBuyShareDto> priorityOrBuyShares = new ArrayList<>();
+        List<PriorityOrBuyShareDto> priorityOrBuyShareDtos = new ArrayList<>();
         MeetingService meetingService1 = new MeetingService(startDate, endDate);
-        priorityOrBuyShares.addAll(meetingService1.getPriorityOrBuyShare("25"));
-        for (PriorityOrBuyShareDto item : priorityOrBuyShares) {
-            priorityOrBuyShare.add(item);
+        priorityOrBuyShareDtos = meetingService1.getPriorityOrBuyShare(LettersTypes.PRIORITYTIME_SAHEHOLDER_MEETING.getLettersTypeValue().toString());
+        for (PriorityOrBuyShareDto item : priorityOrBuyShareDtos) {
+//            priorityOrBuyShare.add(item);
+            codalShareholderMeetingGenericService.insert(CommonUtils.convertTo(item, LettersTypes.PRIORITYTIME_SAHEHOLDER_MEETING));
         }
-        return priorityOrBuyShares;
+        return priorityOrBuyShareDtos;
     }
 
     @GetMapping(path = "/api/postulateDiscussionShareholderMeeting")
     public List<PriorityOrBuyShareDto> postulateDiscussionShareholderMeeting(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
         checkInputData(startDate, endDate);
-        List<PriorityOrBuyShareDto> priorityOrBuyShares = new ArrayList<>();
+        List<PriorityOrBuyShareDto> priorityOrBuyShareDtos = new ArrayList<>();
         MeetingService meetingService1 = new MeetingService(startDate, endDate);
-        priorityOrBuyShares.addAll(meetingService1.getPriorityOrBuyShare("27"));
-        for (PriorityOrBuyShareDto item : priorityOrBuyShares) {
-            priorityOrBuyShare.add(item);
+        priorityOrBuyShareDtos = meetingService1.getPriorityOrBuyShare(LettersTypes.POSTULATEDISCUSSION_SAHEHOLDER_MEETING.getLettersTypeValue().toString());
+        for (PriorityOrBuyShareDto item : priorityOrBuyShareDtos) {
+//            priorityOrBuyShare.add(item);
+            codalShareholderMeetingGenericService.insert(CommonUtils.convertTo(item, LettersTypes.POSTULATEDISCUSSION_SAHEHOLDER_MEETING));
         }
-        return priorityOrBuyShares;
+        return priorityOrBuyShareDtos;
     }
 
     @GetMapping(path = "/api/registerCapitalIncrease")
     public List<PriorityOrBuyShareDto> getRegisterCapitalIncrease(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
         checkInputData(startDate, endDate);
-        List<PriorityOrBuyShareDto> priorityOrBuyShares = new ArrayList<>();
+        List<PriorityOrBuyShareDto> priorityOrBuyShareDtos = new ArrayList<>();
         MeetingService meetingService1 = new MeetingService(startDate, endDate);
-        priorityOrBuyShares.addAll(meetingService1.getPriorityOrBuyShare("28"));
-        for (PriorityOrBuyShareDto item : priorityOrBuyShares) {
-            priorityOrBuyShare.add(item);
+        priorityOrBuyShareDtos = meetingService1.getPriorityOrBuyShare(LettersTypes.CAPITAL_INCREASE_REGISTRATION.getLettersTypeValue().toString());
+        for (PriorityOrBuyShareDto item : priorityOrBuyShareDtos) {
+//            priorityOrBuyShare.add(item);
+            codalShareholderMeetingGenericService.insert(CommonUtils.convertTo(item, LettersTypes.CAPITAL_INCREASE_REGISTRATION));
         }
-        return priorityOrBuyShares;
+        return priorityOrBuyShareDtos;
     }
 
     @GetMapping(path = "/api/extraordinaryAnnualShareholderMeeting")
@@ -144,9 +150,10 @@ public class API {
         checkInputData(startDate, endDate);
         List<DecisionDto> decisionDtos = new ArrayList<>();
         MeetingService meetingService1 = new MeetingService(startDate, endDate);
-        decisionDtos.addAll(meetingService1.getDecisionList("21"));
+        decisionDtos = meetingService1.getDecisionList(LettersTypes.SUMMARY_EXTRAORDINARY_ANNUAL_SAHEHOLDER_MEETING.getLettersTypeValue().toString());
         for (DecisionDto item : decisionDtos) {
-            decision.add(item);
+//            decision.add(item);
+            codalShareholderMeetingGenericService.insert(CommonUtils.convertTo(item, LettersTypes.SUMMARY_EXTRAORDINARY_ANNUAL_SAHEHOLDER_MEETING));
         }
         return decisionDtos;
     }
@@ -156,9 +163,10 @@ public class API {
         checkInputData(startDate, endDate);
         List<DecisionDto> decisionDtos = new ArrayList<>();
         MeetingService meetingService1 = new MeetingService(startDate, endDate);
-        decisionDtos.addAll(meetingService1.getDecisionList("21"));
+        decisionDtos = meetingService1.getDecisionList(LettersTypes.EXTRAORDINARY_ANNUAL_SAHEHOLDER_MEETING.getLettersTypeValue().toString());
         for (DecisionDto item : decisionDtos) {
-            decision.add(item);
+//            decision.add(item);
+            codalShareholderMeetingGenericService.insert(CommonUtils.convertTo(item, LettersTypes.EXTRAORDINARY_ANNUAL_SAHEHOLDER_MEETING));
         }
         return decisionDtos;
     }
@@ -168,9 +176,10 @@ public class API {
         checkInputData(startDate, endDate);
         List<DecisionDto> decisionDtos = new ArrayList<>();
         MeetingService meetingService1 = new MeetingService(startDate, endDate);
-        decisionDtos.addAll(meetingService1.getDecisionList("2121"));
+        decisionDtos = meetingService1.getDecisionList(LettersTypes.SUMMARY_EXTRAORDINARY_ANNUAL_SAHEHOLDER_MEETING.getLettersTypeValue().toString());
         for (DecisionDto item : decisionDtos) {
-            decision.add(item);
+//            decision.add(item);
+            codalShareholderMeetingGenericService.insert(CommonUtils.convertTo(item, LettersTypes.SUMMARY_EXTRAORDINARY_ANNUAL_SAHEHOLDER_MEETING));
         }
         return decisionDtos;
     }
@@ -182,7 +191,7 @@ public class API {
         MeetingService meetingService1 = new MeetingService(startDate, endDate);
         interimStatementDtos.addAll(meetingService1.getInterimStatementDto("6"));
         for (InterimStatementDto item : interimStatementDtos) {
-            interimStatementService.add(item);
+//            interimStatementService.add(item);
         }
         return interimStatementDtos;
     }
@@ -192,7 +201,7 @@ public class API {
         InstrumentInfo instrumentInfo = new InstrumentInfo();
         InstrumentService instrumentService = new InstrumentService(bourseAccount);
         instrumentInfo = instrumentService.getInstrumentInfo();
-        instrumentInfoService.add(instrumentInfo);
+//        instrumentInfoService.add(instrumentInfo);
         return instrumentInfo;
     }
 
@@ -201,7 +210,7 @@ public class API {
         MarketStatusDto marketStatusDto = new MarketStatusDto();
         InstrumentService instrumentService = new InstrumentService();
         marketStatusDto = instrumentService.getMarketStatusDto();
-        marketStatusService.add(marketStatusDto);
+//        marketStatusService.add(marketStatusDto);
         return marketStatusDto;
     }
 
@@ -211,7 +220,7 @@ public class API {
         InstrumentService instrumentService = new InstrumentService();
         marketStatusDto = instrumentService.getMarketStatusPerBourseAccountDto();
         for (MarketStatusPerBourseAccountDto marketStatusPerBourseAccountDto : marketStatusDto) {
-            marketStatusPerBourseAccount.add(marketStatusPerBourseAccountDto);
+//            marketStatusPerBourseAccount.add(marketStatusPerBourseAccountDto);
         }
         return marketStatusDto;
     }
