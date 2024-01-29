@@ -86,31 +86,17 @@ public class CommonUtils {
             }
     }
 
-    public static WebElement getById(WebDriver webDriver, String type, String id) {
-        List<WebElement> list = webDriver.findElements(By.tagName(type));
-        for (WebElement webElement : list) {
-            if (webElement.getDomProperty("id").equals(id))
-                return webElement;
-            WebElement element = getById(webElement, type, id);
-            if (!CommonUtils.isNull(element))
-                return element;
-        }
-        return null;
-    }
-
-    public static WebElement getById(WebElement webElement, String type, String id) {
-        List<WebElement> list = webElement.findElements(By.tagName(type));
-        for (WebElement element : list) {
-            if (element.getDomProperty("id").indexOf(id) != -1)
-                return element;
-            return getById(element, type, id);
-        }
-        return null;
-    }
-
     public static WebElement getWebElement(WebElement webElement, String tagName) {
         try {
             return webElement.findElement(By.tagName(tagName));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static List<WebElement> getWebElements(WebElement webElement, String tagName) {
+        try {
+            return webElement.findElements(By.tagName(tagName));
         } catch (Exception e) {
             return null;
         }
@@ -124,9 +110,25 @@ public class CommonUtils {
         }
     }
 
+    public static List<WebElement> getWebElementsById(WebElement webElement, String id) {
+        try {
+            return webElement.findElements(By.id(id));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public static WebElement getWebElementById(WebDriver webDriver, String id) {
         try {
             return webDriver.findElement(By.id(id));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static List<WebElement> getWebElementsById(WebDriver webDriver, String id) {
+        try {
+            return webDriver.findElements(By.id(id));
         } catch (Exception e) {
             return null;
         }
@@ -148,9 +150,25 @@ public class CommonUtils {
         }
     }
 
+    public static List<WebElement> getWebElementsByClass(WebElement webElement, String className) {
+        try {
+            return webElement.findElements(By.className(className));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public static WebElement getWebElementByTitle(WebDriver webDriver, String title) {
         try {
             return webDriver.findElement(By.xpath("//*[@title='" + title + "']"));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static String getAttribute(WebElement element, String attribute) {
+        try {
+            return element.getAttribute(attribute);
         } catch (Exception e) {
             return null;
         }

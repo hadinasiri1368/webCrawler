@@ -107,9 +107,9 @@ public class InstrumentService {
         List<MarketStatusPerBourseAccountDto> marketStatusPerBourseAccountDtos = new ArrayList<>();
         MarketStatusPerBourseAccountDto marketStatusPerBourseAccountDto = new MarketStatusPerBourseAccountDto();
         WebDriver webDriverMain = new Selenium().webDriver();
-//        Thread.sleep(10000);
+        Thread.sleep(10000);
         webDriverMain.get(webUrl);
-//        Thread.sleep(10000);
+        Thread.sleep(10000);
         WebElement groupList = CommonUtils.getWebElementByClass(webDriverMain, "groupList");
         if (!CommonUtils.isNull(groupList)) {
             WebElement element = groupList.findElement(By.tagName("select"));
@@ -118,11 +118,11 @@ public class InstrumentService {
             for (WebElement option : allOptions) {
                 String value = option.getDomAttribute("value");
                 WebDriver webDrive = new Selenium().webDriver();
-//                Thread.sleep(10000);
+                Thread.sleep(10000);
                 if (!CommonUtils.isNull(value)) {
                     marketStatusPerBourseAccountDto = new MarketStatusPerBourseAccountDto();
                     webDrive.get(webUrl + "/" + option.getDomProperty("value"));
-//                    Thread.sleep(10000);
+                    Thread.sleep(10000);
                     SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm:ss");
                     Calendar calendar = Calendar.getInstance();
                     marketStatusPerBourseAccountDto.setDate(DateUtil.getJalaliDate(LocalDate.now()));

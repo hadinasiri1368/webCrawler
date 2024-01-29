@@ -14,10 +14,7 @@ import org.webCrawler.dto.*;
 import org.webCrawler.model.CodalShareholderMeeting;
 import org.webCrawler.model.LetterType;
 import org.webCrawler.model.MeetingType;
-import org.webCrawler.service.JPAGenericService;
-import org.webCrawler.service.MongoGenericService;
-import org.webCrawler.service.InstrumentService;
-import org.webCrawler.service.MeetingService;
+import org.webCrawler.service.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -50,6 +47,8 @@ public class API {
     @Autowired
     MongoGenericService<MarketStatusPerBourseAccountDto> marketStatusPerBourseAccount;
 
+    @Autowired
+    MongoGenericService<InstrumentDto> instrument;
     @Autowired
     JPAGenericService<CodalShareholderMeeting> codalShareholderMeetingGenericService;
 
@@ -214,6 +213,17 @@ public class API {
             marketStatusPerBourseAccount.add(marketStatusPerBourseAccountDto);
         }
         return marketStatusDto;
+    }
+
+    @GetMapping(path = "/api/getInstrument")
+    public List<InstrumentDto> getInstrument() throws Exception {
+        List<InstrumentDto> instrumentDtos = new ArrayList<>();
+        TSETMCService tsetmcService = new TSETMCService();
+        instrumentDtos = tsetmcService.getInstrument();
+        for (InstrumentDto instrumentDto : instrumentDtos) {
+            instrument.add(instrumentDto);
+        }
+        return instrumentDtos;
     }
 
     private void checkInputData(String startDate, String endDate) throws Exception {
