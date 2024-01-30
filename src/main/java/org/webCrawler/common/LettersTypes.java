@@ -9,7 +9,9 @@ public enum LettersTypes {
     SUMMARY_EXTRAASSEMBLY_SAHEHOLDER_MEETING(2222l, "خلاصه تصمیمات مجمع عمومی فوق العاده"),
     CAPITAL_INCREASE_SAHEHOLDER_MEETING(24l, "تصمیمات هیئت مدیره در خصوص افزایش سرمایه"),
     PRIORITYTIME_SAHEHOLDER_MEETING(25l, "مهلت استفاده از حق تقدم خرید سهام"),
-    POSTULATEDISCUSSION_SAHEHOLDER_MEETING(27l, "اعلامیه پذیره نویسی عمومی");
+    POSTULATEDISCUSSION_SAHEHOLDER_MEETING(27l, "اعلامیه پذیره نویسی عمومی"),
+    CAPITAL_INCREASE_REGISTRATION(28L, "آگهی ثبت افزایش سرمایه");
+
 
     private final Long lettersTypeValue;
     private final String lettersTypeName;
