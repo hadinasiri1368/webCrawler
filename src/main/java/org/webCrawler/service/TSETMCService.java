@@ -5,6 +5,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.webCrawler.common.CommonUtils;
 import org.webCrawler.config.Selenium;
+import org.webCrawler.dto.InstrumentData;
 import org.webCrawler.dto.InstrumentDto;
 import org.webCrawler.dto.InstrumentId;
 
@@ -120,5 +121,79 @@ public class TSETMCService {
         }
         webDriverMain.close();
         return instrumentIds;
+    }
+
+    public List<InstrumentData> getInstrumentData(List<InstrumentDto> instrumentDtos) throws Exception {
+        WebDriver webDriverMain = new Selenium().webDriver();
+        List<InstrumentData> instrumentDataList = new ArrayList<>();
+        for (InstrumentDto item : instrumentDtos) {
+            webDriverMain.get(item.getInstrumentLink());
+            Thread.sleep(10000);
+            List<WebElement> links = webDriverMain.findElement(By.className("menu2")).findElements(By.tagName("a"));
+//            if (CommonUtils.isNull(links) || links.stream().filter(a -> a.getAttribute("innerHTML").equals("سابقه")).count() == 0) {
+//                webDriverMain.get(item.getInstrumentLink());
+//                Thread.sleep(10000);
+//                links = webDriverMain.findElement(By.className("menu2")).findElements(By.tagName("a"));
+//            }
+            links.stream().filter(a -> a.getAttribute("innerHTML").equals("سابقه")).findFirst().get().click();
+            Thread.sleep(10000);
+            WebElement paging = webDriverMain.findElement(By.id("paging"));
+            paging = paging.findElement(By.className("pagingBlock"));
+            List<WebElement> pagelinks = paging.findElements(By.tagName("a"));
+            for (int i = 1; i < pagelinks.size(); i++) {
+                if (i > 1) {
+                    String index = i + "";
+                    paging = webDriverMain.findElement(By.id("paging"));
+                    paging = paging.findElement(By.className("pagingBlock"));
+                    pagelinks = paging.findElements(By.tagName("a"));
+                    pagelinks.stream().filter(a -> a.getAttribute("innerHTML").equals(index)).findFirst().get().click();
+                    Thread.sleep(10000);
+                }
+                WebElement table = webDriverMain.findElement(By.id("trade")).findElement(By.className("objbox")).findElement(By.tagName("table")).findElement(By.tagName("tbody"));
+                List<WebElement> trs = table.findElements(By.tagName("tr"));
+                for (int j = 1; j < trs.size(); j++) {
+                    List<WebElement> tds = trs.get(j).findElements(By.tagName("td"));
+                    InstrumentData instrumentData = new InstrumentData();
+                    instrumentData.setBourseAccount(item.getBourseAccount());
+                    for (int k = 0; k < tds.size(); k++) {
+                        switch (k) {
+                            case 15:
+                                instrumentData.setDate(tds.get(k).getText());
+                                break;
+                            case 14:
+                                instrumentData.setUnit(CommonUtils.longValue(CommonUtils.cleanTextNumber(tds.get(k).getText())));
+                                break;
+                            case 13:
+                                instrumentData.setVolume(CommonUtils.doubleValue(CommonUtils.cleanTextNumber(tds.get(k).getText())));
+                                break;
+                            case 12:
+                                instrumentData.setValue(CommonUtils.doubleValue(CommonUtils.cleanTextNumber(tds.get(k).getText())));
+                                break;
+                            case 11:
+                                instrumentData.setYesterdayPrice(CommonUtils.longValue(CommonUtils.cleanTextNumber(tds.get(k).getText())));
+                                break;
+                            case 10:
+                                instrumentData.setFirstPrice(CommonUtils.longValue(CommonUtils.cleanTextNumber(tds.get(k).getText())));
+                                break;
+                            case 9:
+                                instrumentData.setLastPrice(CommonUtils.longValue(CommonUtils.cleanTextNumber(tds.get(k).getText())));
+                                break;
+                            case 6:
+                                instrumentData.setFinalPrice(CommonUtils.longValue(CommonUtils.cleanTextNumber(tds.get(k).getText())));
+                                break;
+                            case 3:
+                                instrumentData.setMinPrice(CommonUtils.longValue(CommonUtils.cleanTextNumber(tds.get(k).getText())));
+                                break;
+                            case 2:
+                                instrumentData.setMaxPrice(CommonUtils.longValue(CommonUtils.cleanTextNumber(tds.get(k).getText())));
+                                break;
+                        }
+                    }
+                    instrumentDataList.add(instrumentData);
+                }
+            }
+        }
+        webDriverMain.close();
+        return instrumentDataList;
     }
 }

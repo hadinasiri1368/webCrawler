@@ -56,6 +56,9 @@ public class API {
 
     @Autowired
     MongoGenericService<InstrumentId> instrumentId;
+
+    @Autowired
+    MongoGenericService<InstrumentData> instrumentData;
     @Autowired
     JPAGenericService<CodalShareholderMeeting> codalShareholderMeetingGenericService;
 
@@ -252,6 +255,17 @@ public class API {
             instrumentId.add(item);
         }
         return instrumentIds;
+    }
+
+    @GetMapping(path = "/api/getInstrumentData")
+    public List<InstrumentData> getInstrumentData() throws Exception {
+        List<InstrumentData> instrumentDataList = new ArrayList<>();
+        TSETMCService tsetmcService = new TSETMCService();
+        instrumentDataList = tsetmcService.getInstrumentData(instrument.findAll(InstrumentDto.class));
+        for (InstrumentData item : instrumentDataList) {
+            instrumentData.add(item);
+        }
+        return instrumentDataList;
     }
 
     private void checkInputData(String startDate, String endDate) throws Exception {
