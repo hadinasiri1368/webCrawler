@@ -4,6 +4,10 @@ import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,6 +53,9 @@ public class API {
 
     @Autowired
     MongoGenericService<InstrumentDto> instrument;
+
+    @Autowired
+    MongoGenericService<InstrumentId> instrumentId;
     @Autowired
     JPAGenericService<CodalShareholderMeeting> codalShareholderMeetingGenericService;
 
@@ -227,12 +234,24 @@ public class API {
     @GetMapping(path = "/api/getInstrument")
     public List<InstrumentDto> getInstrument() throws Exception {
         List<InstrumentDto> instrumentDtos = new ArrayList<>();
+        List<InstrumentId> instrumentIds = new ArrayList<>();
         TSETMCService tsetmcService = new TSETMCService();
         instrumentDtos = tsetmcService.getInstrument();
         for (InstrumentDto instrumentDto : instrumentDtos) {
             instrument.add(instrumentDto);
         }
         return instrumentDtos;
+    }
+
+    @GetMapping(path = "/api/getInstrumentIds")
+    public List<InstrumentId> getInstrumentIds() throws Exception {
+        List<InstrumentId> instrumentIds = new ArrayList<>();
+        TSETMCService tsetmcService = new TSETMCService();
+        instrumentIds = tsetmcService.getInstrumentIds(instrument.findAll(InstrumentDto.class));
+        for (InstrumentId item : instrumentIds) {
+            instrumentId.add(item);
+        }
+        return instrumentIds;
     }
 
     private void checkInputData(String startDate, String endDate) throws Exception {

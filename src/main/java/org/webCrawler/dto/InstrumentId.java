@@ -9,9 +9,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class InstrumentDto {
+public class InstrumentId {
     private String bourseAccount;
-    private String name;
-    private String groupName;
-    private String instrumentLink;
+    private String caption;
+    private String value;
 }

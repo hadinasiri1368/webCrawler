@@ -6,6 +6,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public class MongoRepository<ENTITY> {
     @Autowired
@@ -17,6 +19,14 @@ public class MongoRepository<ENTITY> {
 
     public ENTITY get(String id, Class<ENTITY> clazz) {
         return mongoTemplate.findById(id, clazz);
+    }
+
+    public List<ENTITY> list(Class<ENTITY> clazz) {
+        return mongoTemplate.findAll(clazz);
+    }
+
+    public List<ENTITY> list(Class<ENTITY> clazz, Query query) {
+        return mongoTemplate.find(query, clazz);
     }
 
     public ENTITY remove(String id, Class<ENTITY> clazz) {
