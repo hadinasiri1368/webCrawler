@@ -4,11 +4,14 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.webCrawler.common.CommonUtils;
+import org.webCrawler.common.DateUtil;
 import org.webCrawler.config.Selenium;
 import org.webCrawler.dto.InstrumentData;
 import org.webCrawler.dto.InstrumentDto;
 import org.webCrawler.dto.InstrumentId;
+import org.webCrawler.dto.Trades;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -123,6 +126,10 @@ public class TSETMCService {
         return instrumentIds;
     }
 
+    public static String getId(String link) {
+        return link.split("\\?")[1].split("&")[1].split("=")[1];
+    }
+
     public List<InstrumentData> getInstrumentData(List<InstrumentDto> instrumentDtos) throws Exception {
         WebDriver webDriverMain = new Selenium().webDriver();
         List<InstrumentData> instrumentDataList = new ArrayList<>();
@@ -155,6 +162,7 @@ public class TSETMCService {
                     List<WebElement> tds = trs.get(j).findElements(By.tagName("td"));
                     InstrumentData instrumentData = new InstrumentData();
                     instrumentData.setBourseAccount(item.getBourseAccount());
+                    instrumentData.setId(getId(item.getInstrumentLink()));
                     for (int k = 0; k < tds.size(); k++) {
                         switch (k) {
                             case 15:
@@ -195,5 +203,49 @@ public class TSETMCService {
         }
         webDriverMain.close();
         return instrumentDataList;
+    }
+
+
+    public List<Trades> getTrades(List<InstrumentData> instrumentData, String instrumenId) throws Exception {
+        WebDriver webDriverMain = new Selenium().webDriver();
+        List<Trades> tradesList = new ArrayList<>();
+        for (InstrumentData item : instrumentData) {
+            LocalDate localDate = DateUtil.getGregorianDate(item.getDate());
+            String link = String.format("https://cdn.tsetmc.com/History/%s/%s", instrumenId, localDate.getYear() + "" + (localDate.getMonthValue() < 10 ? "0" + localDate.getMonthValue() : localDate.getMonthValue()) + "" + (localDate.getDayOfMonth() < 10 ? "0" + localDate.getDayOfMonth() : localDate.getDayOfMonth()));
+            try {
+                webDriverMain.get(link);
+                Thread.sleep(10000);
+                List<WebElement> links = webDriverMain.findElement(By.className("menu2")).findElements(By.tagName("a"));
+                links.stream().filter(a -> a.getAttribute("innerHTML").equals("معاملات")).findFirst().get().click();
+                Thread.sleep(10000);
+                WebElement div = webDriverMain.findElement(By.className("ag-center-cols-container"));
+                List<WebElement> rows = div.findElements(By.className("ag-row"));
+                for (int i = 0; i < rows.size(); i++) {
+                    List<WebElement> tds = rows.get(i).findElements(By.tagName("div"));
+                    Trades trades = new Trades();
+                    trades.setDate(item.getDate());
+                    trades.setBourseAccount(item.getBourseAccount());
+                    for (int j = 0; j < tds.size(); j++) {
+                        switch (j) {
+                            case 1:
+                                trades.setTime(tds.get(j).getText());
+                                break;
+                            case 2:
+                                trades.setVolume(CommonUtils.longValue(CommonUtils.cleanTextNumber(tds.get(j).getText())));
+                                break;
+                            case 3:
+                                trades.setPrice(CommonUtils.longValue(CommonUtils.cleanTextNumber(tds.get(j).getText())));
+                                break;
+                        }
+                    }
+                    tradesList.add(trades);
+                }
+            } catch (Exception e) {
+                System.out.println(link);
+                System.out.println("--------------------------------------------------------------------");
+            }
+        }
+        webDriverMain.close();
+        return tradesList;
     }
 }

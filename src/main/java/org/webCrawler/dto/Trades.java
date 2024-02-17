@@ -9,17 +9,10 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class InstrumentData {
+public class Trades {
     String bourseAccount;
     String date;
-    Long unit;
-    Double volume;
-    Double value;
-    Long yesterdayPrice;
-    Long firstPrice;
-    Long lastPrice;
-    Long finalPrice;
-    Long minPrice;
-    Long maxPrice;
-    String id;
+    String time;
+    Long volume;
+    Long price;
 }

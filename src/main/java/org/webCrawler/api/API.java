@@ -59,6 +59,9 @@ public class API {
 
     @Autowired
     MongoGenericService<InstrumentData> instrumentData;
+
+    @Autowired
+    MongoGenericService<Trades> Trades;
     @Autowired
     JPAGenericService<CodalShareholderMeeting> codalShareholderMeetingGenericService;
 
@@ -266,6 +269,23 @@ public class API {
             instrumentData.add(item);
         }
         return instrumentDataList;
+    }
+
+    @GetMapping(path = "/api/getTrades")
+    public List<Trades> getTrades() throws Exception {
+        List<Trades> tradesList = new ArrayList<>();
+        TSETMCService tsetmcService = new TSETMCService();
+        List<InstrumentDto> instrumentDtos = instrument.findAll(InstrumentDto.class);
+
+        for (InstrumentDto item : instrumentDtos) {
+            List<InstrumentData> instrumentDataList = instrumentData.list(InstrumentData.class, "bourseAccount", item.getBourseAccount());
+            tradesList = tsetmcService.getTrades(instrumentDataList, TSETMCService.getId(item.getInstrumentLink()));
+            for (Trades trades : tradesList) {
+                Trades.add(trades);
+            }
+            break;
+        }
+        return tradesList;
     }
 
     private void checkInputData(String startDate, String endDate) throws Exception {

@@ -25,6 +25,11 @@ public class MongoRepository<ENTITY> {
         return mongoTemplate.findAll(clazz);
     }
 
+    public List<ENTITY> list(Class<ENTITY> clazz, String key, String value) {
+        Query query = new Query(new Criteria(key).is(value));
+        return mongoTemplate.find(query, clazz);
+    }
+
     public List<ENTITY> list(Class<ENTITY> clazz, Query query) {
         return mongoTemplate.find(query, clazz);
     }
