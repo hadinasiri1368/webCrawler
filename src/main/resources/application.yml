@@ -6,7 +6,7 @@ spring:
       database: mydb
       authentication-database: admin
   application:
-    name: "TRANSPORT"
+    name: "stockMonitoring"
   datasource:
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     url: jdbc:sqlserver://;serverName=172.30.23.136;databaseName=stockMonitoring;encrypt=true;trustServerCertificate=true;

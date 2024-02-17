@@ -147,21 +147,6 @@ public class MeetingService {
                                 incomeStatement.setIsAudited(true);
                             }
                             incomeStatementService.insert(incomeStatement);
-                            List<Columns> columnsList =columnsService.findAll(Columns.class);
-
-                                for (BalanceSheet item : interimStatementDto.getProfitAndStatement()){
-                                    incomeStatementDetail.setIncomeStatementId(incomeStatement.getId());
-                                    Columns columns =  columnsList.stream().filter(a->a.getCaption().equals(item.getDescription().trim())).findFirst().get();
-                                    List <IndustryColumn> industryColumnList = industryColumnService.findAll(IndustryColumn.class);
-                                        for (IndustryColumn industryColumn : industryColumnList){
-//                                            industryColumn.getId()
-
-
-                                        }
-                                }
-
-                            
-
                         } else if (select.getFirstSelectedOption().getText().trim().equals("جریان وجوه نقد")) {
                             interimStatementDto.setCashFlow(getBalanceSheets(table, type));
                         }

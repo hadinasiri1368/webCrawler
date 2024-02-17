@@ -70,6 +70,9 @@ public class API {
     @Autowired
     JPAGenericService<Instrument> instrumentJPAGenericService;
 
+    @Autowired
+    TSETMCService tsetmcService;
+
     @GetMapping(path = "/api/extraAssemblyShareholderMeeting")
     public List<ExtraAssemblyDto> getExtraAssemblyShareholderMeeting(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
         checkInputData(startDate, endDate);
@@ -304,7 +307,6 @@ public class API {
     @GetMapping(path = "/api/getInstruments")
     public List<Instrument> getInstruments() throws Exception {
         List<Instrument> instruments = new ArrayList<>();
-        TSETMCService tsetmcService = new TSETMCService();
         tsetmcService.saveInstruments();
         return instruments;
     }
