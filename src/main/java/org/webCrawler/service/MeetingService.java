@@ -7,12 +7,18 @@ import org.openqa.selenium.support.ui.Select;
 import org.webCrawler.common.CommonUtils;
 import org.webCrawler.config.Selenium;
 import org.webCrawler.dto.*;
+import org.webCrawler.model.*;
+
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MeetingService {
     private String date;
+    private JPAGenericService <IncomeStatement> incomeStatementService;
+    private JPAGenericService <Columns> columnsService;
+    private JPAGenericService<FinancialStatementsPeriod> financialStatementsPeriodService;
+    private JPAGenericService<IndustryColumn> industryColumnService;
     private String webUrl = "https://www.codal.ir/ReportList.aspx?search";
 //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=شپنا";
 //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=ومعلم";
@@ -30,6 +36,9 @@ public class MeetingService {
     public List<InterimStatementDto> getInterimStatementDto(String letterType) throws Exception {
         InterimStatementDto interimStatementDto = new InterimStatementDto();
         List<InterimStatementDto> interimStatementDtos = new ArrayList<>();
+        IncomeStatement incomeStatement=new IncomeStatement();
+        IncomeStatementDetail incomeStatementDetail = new IncomeStatementDetail();
+        FinancialStatementsPeriod financialStatementsPeriod =new FinancialStatementsPeriod();
         this.webUrl += String.format("&LetterType=%s", letterType);
         WebDriver webDriverMain = new Selenium().webDriver();
         Thread.sleep(10000);
@@ -124,6 +133,35 @@ public class MeetingService {
                             interimStatementDto.setBalanceSheets(getBalanceSheets(table, type));
                         } else if (select.getFirstSelectedOption().getText().trim().equals("صورت سود و زیان")) {
                             interimStatementDto.setProfitAndStatement(getBalanceSheets(table, type));
+                            incomeStatement.setInstrumentName(interimStatementDto.getBourseAccount());
+                            List <FinancialStatementsPeriod> financialStatementsPeriods = financialStatementsPeriodService.findAll(FinancialStatementsPeriod.class);
+                            switch (interimStatementDto.getPeriod().trim()) {
+                                case "9 ماهه" -> incomeStatement.setFinancialStatementsPeriodId(2L);
+                                case "6 ماهه" -> incomeStatement.setFinancialStatementsPeriodId(3L);
+                                case "12 ماهه" -> incomeStatement.setFinancialStatementsPeriodId(1L);
+                                case "3 ماهه" -> incomeStatement.setFinancialStatementsPeriodId(4L);
+                            }
+                            incomeStatement.setEndTo(interimStatementDto.getEndDate());
+                            incomeStatement.setFiscalYear(interimStatementDto.getDate());
+                            if (interimStatementDto.getFinancialStatementStatus().equals("حسابرسی شده")){
+                                incomeStatement.setIsAudited(true);
+                            }
+                            incomeStatementService.insert(incomeStatement);
+                            List<Columns> columnsList =columnsService.findAll(Columns.class);
+
+                                for (BalanceSheet item : interimStatementDto.getProfitAndStatement()){
+                                    incomeStatementDetail.setIncomeStatementId(incomeStatement.getId());
+                                    Columns columns =  columnsList.stream().filter(a->a.getCaption().equals(item.getDescription().trim())).findFirst().get();
+                                    List <IndustryColumn> industryColumnList = industryColumnService.findAll(IndustryColumn.class);
+                                        for (IndustryColumn industryColumn : industryColumnList){
+//                                            industryColumn.getId()
+
+
+                                        }
+                                }
+
+                            
+
                         } else if (select.getFirstSelectedOption().getText().trim().equals("جریان وجوه نقد")) {
                             interimStatementDto.setCashFlow(getBalanceSheets(table, type));
                         }

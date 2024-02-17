@@ -16,6 +16,7 @@ import org.webCrawler.common.DateUtil;
 import org.webCrawler.common.LettersTypes;
 import org.webCrawler.dto.*;
 import org.webCrawler.model.CodalShareholderMeeting;
+import org.webCrawler.model.Instrument;
 import org.webCrawler.model.LetterType;
 import org.webCrawler.model.MeetingType;
 import org.webCrawler.service.*;
@@ -52,7 +53,7 @@ public class API {
     MongoGenericService<MarketStatusPerBourseAccountDto> marketStatusPerBourseAccount;
 
     @Autowired
-    MongoGenericService<InstrumentDto> instrument;
+    MongoGenericService<InstrumentDto> instrumentDtoMongoGenericService;
 
     @Autowired
     MongoGenericService<InstrumentId> instrumentId;
@@ -62,8 +63,12 @@ public class API {
 
     @Autowired
     MongoGenericService<Trades> Trades;
+
     @Autowired
     JPAGenericService<CodalShareholderMeeting> codalShareholderMeetingGenericService;
+
+    @Autowired
+    JPAGenericService<Instrument> instrumentJPAGenericService;
 
     @GetMapping(path = "/api/extraAssemblyShareholderMeeting")
     public List<ExtraAssemblyDto> getExtraAssemblyShareholderMeeting(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
@@ -244,7 +249,7 @@ public class API {
         TSETMCService tsetmcService = new TSETMCService();
         instrumentDtos = tsetmcService.getInstrument();
         for (InstrumentDto instrumentDto : instrumentDtos) {
-            instrument.add(instrumentDto);
+            instrumentDtoMongoGenericService.add(instrumentDto);
         }
         return instrumentDtos;
     }
@@ -253,7 +258,7 @@ public class API {
     public List<InstrumentId> getInstrumentIds() throws Exception {
         List<InstrumentId> instrumentIds = new ArrayList<>();
         TSETMCService tsetmcService = new TSETMCService();
-        instrumentIds = tsetmcService.getInstrumentIds(instrument.findAll(InstrumentDto.class));
+        instrumentIds = tsetmcService.getInstrumentIds(instrumentDtoMongoGenericService.findAll(InstrumentDto.class));
         for (InstrumentId item : instrumentIds) {
             instrumentId.add(item);
         }
@@ -264,7 +269,7 @@ public class API {
     public List<InstrumentData> getInstrumentData() throws Exception {
         List<InstrumentData> instrumentDataList = new ArrayList<>();
         TSETMCService tsetmcService = new TSETMCService();
-        instrumentDataList = tsetmcService.getInstrumentData(instrument.findAll(InstrumentDto.class));
+        instrumentDataList = tsetmcService.getInstrumentData(instrumentDtoMongoGenericService.findAll(InstrumentDto.class));
         for (InstrumentData item : instrumentDataList) {
             instrumentData.add(item);
         }
@@ -275,7 +280,7 @@ public class API {
     public List<Trades> getTrades() throws Exception {
         List<Trades> tradesList = new ArrayList<>();
         TSETMCService tsetmcService = new TSETMCService();
-        List<InstrumentDto> instrumentDtos = instrument.findAll(InstrumentDto.class);
+        List<InstrumentDto> instrumentDtos = instrumentDtoMongoGenericService.findAll(InstrumentDto.class);
 
         for (InstrumentDto item : instrumentDtos) {
             List<InstrumentData> instrumentDataList = instrumentData.list(InstrumentData.class, "bourseAccount", item.getBourseAccount());
@@ -295,5 +300,14 @@ public class API {
         if (CommonUtils.isNull(toDate)) throw new RuntimeException("end.date.not.valid");
         if (startDate.compareTo(endDate) > 0) throw new RuntimeException("start.date.must.bigger.than.end.date");
     }
+
+    @GetMapping(path = "/api/getInstruments")
+    public List<Instrument> getInstruments() throws Exception {
+        List<Instrument> instruments = new ArrayList<>();
+        TSETMCService tsetmcService = new TSETMCService();
+        tsetmcService.saveInstruments();
+        return instruments;
+    }
+
 }
 

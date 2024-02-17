@@ -10,7 +10,8 @@ public enum LettersTypes {
     CAPITAL_INCREASE_SAHEHOLDER_MEETING(24l, "تصمیمات هیئت مدیره در خصوص افزایش سرمایه"),
     PRIORITYTIME_SAHEHOLDER_MEETING(25l, "مهلت استفاده از حق تقدم خرید سهام"),
     POSTULATEDISCUSSION_SAHEHOLDER_MEETING(27l, "اعلامیه پذیره نویسی عمومی"),
-    CAPITAL_INCREASE_REGISTRATION(28L, "آگهی ثبت افزایش سرمایه");
+    CAPITAL_INCREASE_REGISTRATION(28L, "آگهی ثبت افزایش سرمایه"),
+    INFORMATION_AND_INTERIM_FINANCIAL_STATEMENTS(6L, "اطلاعات و صورتهای مالی میاندوره ای");
 
 
     private final Long lettersTypeValue;

@@ -3,14 +3,8 @@ package org.webCrawler.common;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.webCrawler.dto.CapitalIncreaseDto;
-import org.webCrawler.dto.DecisionDto;
-import org.webCrawler.dto.ExtraAssemblyDto;
-import org.webCrawler.dto.PriorityOrBuyShareDto;
-import org.webCrawler.model.CodalShareholderMeeting;
-import org.webCrawler.model.LetterType;
-import org.webCrawler.model.MeetingStatus;
-import org.webCrawler.model.MeetingType;
+import org.webCrawler.dto.*;
+import org.webCrawler.model.*;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -21,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CommonUtils {
-    private static final String CHROMEDRIVER_EXE = "D:\\java\\webCrawler\\chromedriver-win64\\chromedriver.exe";
+    private static final String CHROMEDRIVER_EXE = "F:\\java\\webCrawler\\chromedriver-win64\\chromedriver.exe";
 
     public static String findFile() {
         try {
@@ -309,18 +303,16 @@ public class CommonUtils {
             LocalDate md = DateUtil.getGregorianDate(priorityOrBuyShareDto.getEndDate()).plusDays(1);
             codalShareholderMeeting.setIpoDate(DateUtil.getJalaliDate(md));
             codalShareholderMeeting.setRenewedIpoDate(DateUtil.getJalaliDate(md));
-        }
-        else if(lettersTypes.getLettersTypeValue().equals(LettersTypes.POSTULATEDISCUSSION_SAHEHOLDER_MEETING.getLettersTypeValue())) {
+        } else if (lettersTypes.getLettersTypeValue().equals(LettersTypes.POSTULATEDISCUSSION_SAHEHOLDER_MEETING.getLettersTypeValue())) {
             codalShareholderMeeting.setIpoDate(priorityOrBuyShareDto.getEndDate());
             LocalDate md = DateUtil.getGregorianDate(priorityOrBuyShareDto.getEndDate()).plusDays(1);
             codalShareholderMeeting.setRenewedIpoDate(DateUtil.getJalaliDate(md));
-        }
-        else if (lettersTypes.getLettersTypeValue().equals(LettersTypes.CAPITAL_INCREASE_REGISTRATION.getLettersTypeValue())){
+        } else if (lettersTypes.getLettersTypeValue().equals(LettersTypes.CAPITAL_INCREASE_REGISTRATION.getLettersTypeValue())) {
             codalShareholderMeeting.setConfirmDate(priorityOrBuyShareDto.getConfirmDate());
         }
         codalShareholderMeeting.setLetterType(LetterType.builder().id(lettersTypes.getLettersTypeValue()).build());
         codalShareholderMeeting.setMeetingType(MeetingType.builder().id(MeetingTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING.getValue()).build());
         return codalShareholderMeeting;
     }
-
 }
+

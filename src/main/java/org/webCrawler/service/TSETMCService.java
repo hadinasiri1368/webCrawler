@@ -10,6 +10,8 @@ import org.webCrawler.dto.InstrumentData;
 import org.webCrawler.dto.InstrumentDto;
 import org.webCrawler.dto.InstrumentId;
 import org.webCrawler.dto.Trades;
+import org.webCrawler.model.Industry;
+import org.webCrawler.model.Instrument;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -17,6 +19,10 @@ import java.util.List;
 
 public class TSETMCService {
     private String webUrl = "https://old.tsetmc.com/Loader.aspx?ParTree=15131F";
+    private MongoGenericService<InstrumentId> instrumentIdMongoGenericService;
+    private MongoGenericService<InstrumentDto> instrumentDtoMongoGenericService;
+    private JPAGenericService<Industry> industryJPAGenericService;
+    private JPAGenericService<Instrument> instrumentJPAGenericService;
 
     public List<InstrumentDto> getInstrument() throws Exception {
         List<InstrumentDto> list = new ArrayList<>();
@@ -247,5 +253,35 @@ public class TSETMCService {
         }
         webDriverMain.close();
         return tradesList;
+    }
+
+    public void saveInstruments() throws Exception {
+        List<InstrumentDto> instrumentDtos = new ArrayList<>();
+        List<InstrumentId> instrumentIds = new ArrayList<>();
+        List<Industry> industries = new ArrayList<>();
+
+        Instrument instrument = new Instrument();
+        instrumentDtos = instrumentDtoMongoGenericService.findAll(InstrumentDto.class);
+        instrumentIds = instrumentIdMongoGenericService.findAll(InstrumentId.class);
+        industries = industryJPAGenericService.findAll(Industry.class);
+        for (InstrumentDto instrumentDto : instrumentDtos) {
+            List<InstrumentId> instrumentIdList = instrumentIds.stream().filter(a -> a.getBourseAccount().equals(instrumentDto.getBourseAccount())).toList();
+            instrument.setInsMaxLcode(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد 12 رقمی نماد")).findFirst().get().getValue());
+            instrument.setInsMinLcode(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد 5 رقمی نماد")).findFirst().get().getValue());
+            instrument.setLatinName(instrumentIdList.stream().filter(a -> a.getCaption().equals("نام لاتین شرکت")).findFirst().get().getValue());
+            instrument.setFourDigitCompanyCode(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد 4 رقمی شرکت")).findFirst().get().getValue());
+            instrument.setCompanyName(instrumentIdList.stream().filter(a -> a.getCaption().equals("نام شرکت")).findFirst().get().getValue());
+            instrument.setInstrumentName(instrumentIdList.stream().filter(a -> a.getBourseAccount().equals("نماد فارسی")).findFirst().get().getValue());
+            instrument.setInstrumentNameThirty(instrumentIdList.stream().filter(a -> a.getBourseAccount().equals("نماد 30 رقمی فارسی")).findFirst().get().getValue());
+            instrument.setIsinCode(instrumentIdList.stream().filter(a -> a.getBourseAccount().equals("کد 12 رقمی شرکت")).findFirst().get().getValue());
+            instrument.setMarket(instrumentIdList.stream().filter(a -> a.getBourseAccount().equals("بازار")).findFirst().get().getValue());
+            instrument.setBoardCode(Long.valueOf(instrumentIdList.stream().filter(a -> a.getBourseAccount().equals("کد تابلو")).findFirst().get().getValue()));
+            instrument.setIndustrySubgroupCode(Long.valueOf(instrumentIdList.stream().filter(a -> a.getBourseAccount().equals("کد زیر گروه صنعت")).findFirst().get().getValue()));
+            instrument.setIndustrySubgroupName(instrumentIdList.stream().filter(a -> a.getBourseAccount().equals("زیر گروه صنعت")).findFirst().get().getValue());
+//            instrument.setTsetmsId(instrument);
+            String code = instrumentIdList.stream().filter(a -> a.getCaption().equals("کد گروه صنعت")).findFirst().get().getValue();
+            instrument.setIndustryId(industries.stream().filter(a -> a.getCode().equals(CommonUtils.longValue(code))).findFirst().get().getId());
+            instrumentJPAGenericService.insert(instrument);
+        }
     }
 }
