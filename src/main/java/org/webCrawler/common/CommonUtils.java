@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CommonUtils {
-    private static final String CHROMEDRIVER_EXE = "F:\\java\\webCrawler\\chromedriver-win64\\chromedriver.exe";
+    private static final String CHROMEDRIVER_EXE = "D:\\java\\webCrawler\\chromedriver-win64\\chromedriver.exe";
 
     public static String findFile() {
         try {
