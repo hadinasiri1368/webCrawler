@@ -15,10 +15,7 @@ import org.webCrawler.common.CommonUtils;
 import org.webCrawler.common.DateUtil;
 import org.webCrawler.common.LettersTypes;
 import org.webCrawler.dto.*;
-import org.webCrawler.model.CodalShareholderMeeting;
-import org.webCrawler.model.Instrument;
-import org.webCrawler.model.LetterType;
-import org.webCrawler.model.MeetingType;
+import org.webCrawler.model.*;
 import org.webCrawler.service.*;
 
 import java.time.LocalDate;
@@ -310,6 +307,14 @@ public class API {
         tsetmcService.saveInstruments();
         return instruments;
     }
+
+    //ToDo
+//    @GetMapping(path = "/api/getIncomeStatement")
+//    public List<IncomeStatement> getIncomeStatement() throws Exception{
+//        List<IncomeStatement> incomeStatements = new ArrayList<>();
+//
+//
+//    }
 
 }
 

@@ -4,6 +4,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.webCrawler.common.CommonUtils;
 import org.webCrawler.config.Selenium;
 import org.webCrawler.dto.*;
@@ -15,10 +17,14 @@ import java.util.List;
 
 public class MeetingService {
     private String date;
-    private JPAGenericService <IncomeStatement> incomeStatementService;
-    private JPAGenericService <Columns> columnsService;
+    private JPAGenericService<Industry> industryJPAGenericService;
+    private JPAGenericService<IncomeStatement> incomeStatementService;
+    private JPAGenericService<Columns> columnsService;
     private JPAGenericService<FinancialStatementsPeriod> financialStatementsPeriodService;
     private JPAGenericService<IndustryColumn> industryColumnService;
+    private MongoGenericService<InterimStatementDto> interimStatementDtoMeetingService;
+    private JPAGenericService<Instrument> instrumentJPAGenericService;
+    private JPAGenericService<IncomeStatementDetail> incomeStatementDetailService;
     private String webUrl = "https://www.codal.ir/ReportList.aspx?search";
 //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=شپنا";
 //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=ومعلم";
@@ -33,12 +39,10 @@ public class MeetingService {
         this.webUrl += String.format("&FromDate=%s&ToDate=%s", date, endDate);
     }
 
+
     public List<InterimStatementDto> getInterimStatementDto(String letterType) throws Exception {
         InterimStatementDto interimStatementDto = new InterimStatementDto();
         List<InterimStatementDto> interimStatementDtos = new ArrayList<>();
-        IncomeStatement incomeStatement=new IncomeStatement();
-        IncomeStatementDetail incomeStatementDetail = new IncomeStatementDetail();
-        FinancialStatementsPeriod financialStatementsPeriod =new FinancialStatementsPeriod();
         this.webUrl += String.format("&LetterType=%s", letterType);
         WebDriver webDriverMain = new Selenium().webDriver();
         Thread.sleep(10000);
@@ -133,20 +137,6 @@ public class MeetingService {
                             interimStatementDto.setBalanceSheets(getBalanceSheets(table, type));
                         } else if (select.getFirstSelectedOption().getText().trim().equals("صورت سود و زیان")) {
                             interimStatementDto.setProfitAndStatement(getBalanceSheets(table, type));
-                            incomeStatement.setInstrumentName(interimStatementDto.getBourseAccount());
-                            List <FinancialStatementsPeriod> financialStatementsPeriods = financialStatementsPeriodService.findAll(FinancialStatementsPeriod.class);
-                            switch (interimStatementDto.getPeriod().trim()) {
-                                case "9 ماهه" -> incomeStatement.setFinancialStatementsPeriodId(2L);
-                                case "6 ماهه" -> incomeStatement.setFinancialStatementsPeriodId(3L);
-                                case "12 ماهه" -> incomeStatement.setFinancialStatementsPeriodId(1L);
-                                case "3 ماهه" -> incomeStatement.setFinancialStatementsPeriodId(4L);
-                            }
-                            incomeStatement.setEndTo(interimStatementDto.getEndDate());
-                            incomeStatement.setFiscalYear(interimStatementDto.getDate());
-                            if (interimStatementDto.getFinancialStatementStatus().equals("حسابرسی شده")){
-                                incomeStatement.setIsAudited(true);
-                            }
-                            incomeStatementService.insert(incomeStatement);
                         } else if (select.getFirstSelectedOption().getText().trim().equals("جریان وجوه نقد")) {
                             interimStatementDto.setCashFlow(getBalanceSheets(table, type));
                         }
@@ -865,6 +855,40 @@ public class MeetingService {
                 peoplePrsentInMeetingList.add(peoplePrsentInMeeting);
         }
         return peoplePrsentInMeetingList;
+    }
+
+    public void saveIncomeStatement() throws Exception {
+        List<Columns> columnsList = columnsService.findAll(Columns.class);
+        List<InterimStatementDto> interimStatementDtos = interimStatementDtoMeetingService.findAll(InterimStatementDto.class);
+        List<Instrument> instrumentList = instrumentJPAGenericService.findAll(Instrument.class);
+        for (InterimStatementDto interimStatementDto : interimStatementDtos) {
+            IncomeStatement incomeStatement = new IncomeStatement();
+            IncomeStatementDetail incomeStatementDetail = new IncomeStatementDetail();
+            incomeStatement.setInstrumenID(instrumentList.stream().filter(a -> a.getInstrumentName().equals(interimStatementDto.getBourseAccount())).findFirst().get().getId());
+            incomeStatement.setFiscalYear(interimStatementDto.getDate());
+            switch (interimStatementDto.getPeriod().trim()) {
+                case "9 ماهه" -> incomeStatement.setFinancialStatementsPeriodId(2L);
+                case "6 ماهه" -> incomeStatement.setFinancialStatementsPeriodId(3L);
+                case "12 ماهه" -> incomeStatement.setFinancialStatementsPeriodId(1L);
+                case "3 ماهه" -> incomeStatement.setFinancialStatementsPeriodId(4L);
+            }
+            incomeStatement.setIndustryId(instrumentList.stream().filter(a -> a.getInstrumentName().equals(interimStatementDto.getBourseAccount())).findFirst().get().getIndustryId());
+            if (interimStatementDto.getFinancialStatementStatus().equals("حسابرسی شده")) {
+                incomeStatement.setIsAudited(true);
+            }
+            incomeStatement.setEndTo(interimStatementDto.getEndDate());
+            incomeStatementService.insert(incomeStatement);
+            List<BalanceSheet> profitAndStatement = interimStatementDto.getProfitAndStatement();
+            List<IndustryColumn> industryColumnList = industryColumnService.findAll(IndustryColumn.class);
+            for (BalanceSheet item : profitAndStatement) {
+                incomeStatementDetail.setIncomeStatementId(incomeStatement.getId());
+                Long columnId = columnsList.stream().filter(a -> a.getCaption().equals(item.getDescription())).findFirst().get().getId();
+                Long industryColumnId = industryColumnList.stream().filter(a -> a.getIndustryId().equals(incomeStatement.getIndustryId()) && a.getColumnId().equals(columnId)).findFirst().get().getId();
+                incomeStatementDetail.setValue(item.getActualPerformance());
+                incomeStatementDetail.setIndustryColumnId(industryColumnId);
+                incomeStatementDetailService.insert(incomeStatementDetail);
+            }
+        }
     }
 
 }
