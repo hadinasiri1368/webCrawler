@@ -7,38 +7,44 @@ import org.openqa.selenium.support.ui.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.webCrawler.common.CommonUtils;
+import org.webCrawler.common.DateUtil;
 import org.webCrawler.config.Selenium;
 import org.webCrawler.dto.*;
 import org.webCrawler.model.*;
 
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
+@Service
 public class MeetingService {
-    private String date;
+    @Autowired
     private JPAGenericService<Industry> industryJPAGenericService;
+    @Autowired
     private JPAGenericService<IncomeStatement> incomeStatementService;
+    @Autowired
     private JPAGenericService<Columns> columnsService;
+    @Autowired
     private JPAGenericService<FinancialStatementsPeriod> financialStatementsPeriodService;
+    @Autowired
     private JPAGenericService<IndustryColumn> industryColumnService;
+    @Autowired
     private MongoGenericService<InterimStatementDto> interimStatementDtoMeetingService;
+    @Autowired
     private JPAGenericService<Instrument> instrumentJPAGenericService;
+    @Autowired
     private JPAGenericService<IncomeStatementDetail> incomeStatementDetailService;
     private String webUrl = "https://www.codal.ir/ReportList.aspx?search";
 //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=شپنا";
 //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=ومعلم";
 
-    public MeetingService(String date) {
-        this.date = date;
-        this.webUrl += String.format("&FromDate=%s&ToDate=%s", date, date);
-    }
-
-    public MeetingService(String date, String endDate) {
-        this.date = date;
+    public void setMeetingService(String date, String endDate) {
         this.webUrl += String.format("&FromDate=%s&ToDate=%s", date, endDate);
     }
 
+    public MeetingService(){
+        this.webUrl += String.format("&FromDate=%s&ToDate=%s", DateUtil.getJalaliDate(LocalDate.now()), DateUtil.getJalaliDate(LocalDate.now()));
+    }
 
     public List<InterimStatementDto> getInterimStatementDto(String letterType) throws Exception {
         InterimStatementDto interimStatementDto = new InterimStatementDto();
