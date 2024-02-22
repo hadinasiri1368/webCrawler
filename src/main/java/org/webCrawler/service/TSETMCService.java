@@ -18,6 +18,7 @@ import org.webCrawler.model.Instrument;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
 @Service
 public class TSETMCService {
     private String webUrl = "https://old.tsetmc.com/Loader.aspx?ParTree=15131F";
@@ -226,28 +227,35 @@ public class TSETMCService {
             String link = String.format("https://cdn.tsetmc.com/History/%s/%s", instrumenId, localDate.getYear() + "" + (localDate.getMonthValue() < 10 ? "0" + localDate.getMonthValue() : localDate.getMonthValue()) + "" + (localDate.getDayOfMonth() < 10 ? "0" + localDate.getDayOfMonth() : localDate.getDayOfMonth()));
             try {
                 webDriverMain.get(link);
-                Thread.sleep(10000);
+                Thread.sleep(1000);
                 List<WebElement> links = webDriverMain.findElement(By.className("menu2")).findElements(By.tagName("a"));
                 links.stream().filter(a -> a.getAttribute("innerHTML").equals("معاملات")).findFirst().get().click();
-                Thread.sleep(10000);
+                Thread.sleep(1000);
                 WebElement div = webDriverMain.findElement(By.className("ag-center-cols-container"));
                 List<WebElement> rows = div.findElements(By.className("ag-row"));
+                int colIndex = 0;
                 for (int i = 0; i < rows.size(); i++) {
                     List<WebElement> tds = rows.get(i).findElements(By.tagName("div"));
                     Trades trades = new Trades();
                     trades.setDate(item.getDate());
                     trades.setBourseAccount(item.getBourseAccount());
                     for (int j = 0; j < tds.size(); j++) {
-                        switch (j) {
-                            case 1:
-                                trades.setTime(tds.get(j).getText());
-                                break;
-                            case 2:
-                                trades.setVolume(CommonUtils.longValue(CommonUtils.cleanTextNumber(tds.get(j).getText())));
-                                break;
-                            case 3:
-                                trades.setPrice(CommonUtils.longValue(CommonUtils.cleanTextNumber(tds.get(j).getText())));
-                                break;
+                        if (j == 0) {
+                            WebElement span = CommonUtils.getWebElement(tds.get(j), "span");
+                            long count = CommonUtils.getWebElements(span, "div").stream()
+                                    .filter(a -> !CommonUtils.isNull(a.getDomProperty("style")) && a.getDomProperty("style").contains("border-top"))
+                                    .count();
+                            colIndex = 0;
+                            if (count > 0) {
+                                trades.setIsCancel(true);
+                                colIndex = 2;
+                            }
+                        } else if (1 + colIndex == j) {
+                            trades.setTime(tds.get(j).getText());
+                        } else if (2 + colIndex == j) {
+                            trades.setVolume(CommonUtils.longValue(CommonUtils.cleanTextNumber(tds.get(j).getText())));
+                        } else if (3 + colIndex == j) {
+                            trades.setPrice(CommonUtils.longValue(CommonUtils.cleanTextNumber(tds.get(j).getText())));
                         }
                     }
                     tradesList.add(trades);

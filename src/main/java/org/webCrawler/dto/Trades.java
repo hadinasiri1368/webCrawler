@@ -15,4 +15,5 @@ public class Trades {
     String time;
     Long volume;
     Long price;
+    Boolean isCancel;
 }
