@@ -11,8 +11,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class CommonUtils {
     private static final String CHROMEDRIVER_EXE = "F:\\java\\webCrawler\\chromedriver-win64\\chromedriver.exe";
@@ -33,7 +37,7 @@ public class CommonUtils {
             return ((Number) number).longValue();
         else
             try {
-                return Long.valueOf(cleanTextNumber(number.toString()));
+                return Long.valueOf(cleanTextNumber(arabicToDecimal(number.toString())));
             } catch (NumberFormatException e) {
                 return null;
             }
@@ -314,5 +318,24 @@ public class CommonUtils {
         codalShareholderMeeting.setMeetingType(MeetingType.builder().id(MeetingTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING.getValue()).build());
         return codalShareholderMeeting;
     }
+    public static String arabicToDecimal(String number) {
+        char[] chars = new char[number.length()];
+        for (int i = 0; i < number.length(); i++) {
+            char ch = number.charAt(i);
+            if (ch >= 0x0660 && ch <= 0x0669)
+                ch -= 0x0660 - '0';
+            else if (ch >= 0x06f0 && ch <= 0x06F9)
+                ch -= 0x06f0 - '0';
+            chars[i] = ch;
+        }
+        return new String(chars);
+    }
+
+    public static String replaceFarsiChars(String word) {
+        word = word.replaceAll("ك","ک");
+        word = word.replaceAll("ي","ی");
+            return word;
+        }
+
 }
 

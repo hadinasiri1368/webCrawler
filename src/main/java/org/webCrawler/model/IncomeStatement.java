@@ -14,8 +14,8 @@ public class IncomeStatement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(columnDefinition = "decimal(18, 0)", name="f_instrumen_id")
-    private Long instrumenID;
+    @Column(columnDefinition = "decimal(18, 0)", name="f_instrument_id")
+    private Long instrumentID;
     @Column(columnDefinition = "NVARCHAR(50)" , name = "fiscal_year")
     private String fiscalYear;
     @Column(columnDefinition = "varchar(10)",name = "f_financial_statements_period_id")

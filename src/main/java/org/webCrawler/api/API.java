@@ -28,45 +28,32 @@ public class API {
 
     @Autowired
     MongoGenericService<ExtraAssemblyDto> extraAssembl;
-
     @Autowired
     MongoGenericService<DecisionDto> decision;
-
     @Autowired
     MongoGenericService<CapitalIncreaseDto> capitalIncrease;
-
     @Autowired
     MongoGenericService<PriorityOrBuyShareDto> priorityOrBuyShare;
-
     @Autowired
     MongoGenericService<InterimStatementDto> interimStatementService;
     @Autowired
     MongoGenericService<InstrumentInfo> instrumentInfoService;
-
     @Autowired
     MongoGenericService<MarketStatusDto> marketStatusService;
-
     @Autowired
     MongoGenericService<MarketStatusPerBourseAccountDto> marketStatusPerBourseAccount;
-
     @Autowired
     MongoGenericService<InstrumentDto> instrumentDtoMongoGenericService;
-
     @Autowired
     MongoGenericService<InstrumentId> instrumentId;
-
     @Autowired
     MongoGenericService<InstrumentData> instrumentData;
-
     @Autowired
     MongoGenericService<Trades> Trades;
-
     @Autowired
     JPAGenericService<CodalShareholderMeeting> codalShareholderMeetingGenericService;
-
     @Autowired
     JPAGenericService<Instrument> instrumentJPAGenericService;
-
     @Autowired
     TSETMCService tsetmcService;
     @Autowired
@@ -311,12 +298,13 @@ public class API {
     }
 
     //ToDo
-//    @GetMapping(path = "/api/getIncomeStatement")
-//    public List<IncomeStatement> getIncomeStatement() throws Exception{
-//        List<IncomeStatement> incomeStatements = new ArrayList<>();
-//
-//
-//    }
+    @GetMapping(path = "/api/getIncomeStatement")
+    public List<IncomeStatement> getIncomeStatement() throws Exception{
+        List<IncomeStatement> incomeStatements = new ArrayList<>();
+        meetingService.saveIncomeStatement();
+        return incomeStatements;
+
+    }
 
 }
 
