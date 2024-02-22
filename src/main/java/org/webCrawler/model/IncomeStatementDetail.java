@@ -18,6 +18,6 @@ public class IncomeStatementDetail {
     private Long incomeStatementId;
     @Column(columnDefinition = "decimal(18, 0)" , name = "f_industry_column_id")
     private Long industryColumnId;
-    @Column(columnDefinition = "decimal(12, 6)")
+    @Column(columnDefinition = "decimal(18, 6)")
     private Long value;
 }

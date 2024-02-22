@@ -47,7 +47,7 @@ public class TSETMCService {
                 btnnew.click();
                 Thread.sleep(1000);
                 webDriverMain.findElement(By.id("InputFilterCode")).clear();
-                webDriverMain.findElement(By.id("InputFilterCode")).sendKeys("(bvol)>=1");
+                webDriverMain.findElement(By.id("InputFilterCode")).sendKeys("(cs)==1");
                 webDriverMain.findElement(By.id("InputFilterName")).clear();
                 webDriverMain.findElement(By.id("InputFilterName")).sendKeys("کل نمادها");
                 btnnew = webDriverMain.findElements(By.className("awesome")).stream().filter(a -> a.getAttribute("innerHTML").contains("ثبت")).findFirst().get();
@@ -61,7 +61,7 @@ public class TSETMCService {
                 btnnew.click();
                 Thread.sleep(1000);
                 webDriverMain.findElement(By.id("InputFilterCode")).clear();
-                webDriverMain.findElement(By.id("InputFilterCode")).sendKeys("(bvol)<=-1");
+                webDriverMain.findElement(By.id("InputFilterCode")).sendKeys("(cs)==1");
                 webDriverMain.findElement(By.id("InputFilterName")).clear();
                 webDriverMain.findElement(By.id("InputFilterName")).sendKeys("هیچ اطلاعات");
                 btnnew = webDriverMain.findElements(By.className("awesome")).stream().filter(a -> a.getAttribute("innerHTML").contains("ثبت")).findFirst().get();
