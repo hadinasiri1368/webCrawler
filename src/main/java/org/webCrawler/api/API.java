@@ -297,12 +297,19 @@ public class API {
         return instruments;
     }
 
-    //ToDo
     @GetMapping(path = "/api/getIncomeStatement")
     public List<IncomeStatement> getIncomeStatement() throws Exception{
         List<IncomeStatement> incomeStatements = new ArrayList<>();
         meetingService.saveIncomeStatement();
         return incomeStatements;
+
+    }
+
+    @GetMapping(path = "/api/getInstrumentPriceDate")
+    public List<InstrumentPriceDate> getInstrumentPriceDate() throws Exception{
+        List<InstrumentPriceDate> instrumentPriceDates = new ArrayList<>();
+        tsetmcService.saveInstrumentPriceDate();
+        return instrumentPriceDates;
 
     }
 

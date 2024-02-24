@@ -1,5 +1,7 @@
 package org.webCrawler.service;
 
+import jakarta.transaction.Transactional;
+import org.checkerframework.checker.units.qual.A;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -8,16 +10,16 @@ import org.springframework.stereotype.Service;
 import org.webCrawler.common.CommonUtils;
 import org.webCrawler.common.DateUtil;
 import org.webCrawler.config.Selenium;
-import org.webCrawler.dto.InstrumentData;
-import org.webCrawler.dto.InstrumentDto;
-import org.webCrawler.dto.InstrumentId;
-import org.webCrawler.dto.Trades;
+import org.webCrawler.dto.*;
+import org.webCrawler.model.Columns;
 import org.webCrawler.model.Industry;
 import org.webCrawler.model.Instrument;
+import org.webCrawler.model.InstrumentPriceDate;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TSETMCService {
@@ -30,6 +32,10 @@ public class TSETMCService {
     private JPAGenericService<Industry> industryJPAGenericService;
     @Autowired
     private JPAGenericService<Instrument> instrumentJPAGenericService;
+    @Autowired
+    private MongoGenericService<InstrumentData> instrumentDataMongoGenericService;
+    @Autowired
+    private JPAGenericService<InstrumentPriceDate> instrumentPriceDateJPAGenericService;
 
     public List<InstrumentDto> getInstrument() throws Exception {
         List<InstrumentDto> list = new ArrayList<>();
@@ -160,14 +166,27 @@ public class TSETMCService {
             WebElement paging = webDriverMain.findElement(By.id("paging"));
             paging = paging.findElement(By.className("pagingBlock"));
             List<WebElement> pagelinks = paging.findElements(By.tagName("a"));
-            for (int i = 1; i < pagelinks.size(); i++) {
+            int pagelinksSize = 35;
+            for (int i = 1; i <= pagelinksSize + 1; i++) {
                 if (i > 1) {
                     String index = i + "";
+                    if (i % 35 == 1) {
+                        pagelinks = paging.findElements(By.tagName("a"));
+                        Optional<WebElement> element = pagelinks.stream().filter(a -> a.getAttribute("innerHTML").equals("&gt;")).findFirst();
+                        if (!element.isPresent())
+                            break;
+                        element.get().click();
+                        Thread.sleep(1000);
+                        pagelinksSize += 35;
+                    }
                     paging = webDriverMain.findElement(By.id("paging"));
                     paging = paging.findElement(By.className("pagingBlock"));
                     pagelinks = paging.findElements(By.tagName("a"));
-                    pagelinks.stream().filter(a -> a.getAttribute("innerHTML").equals(index)).findFirst().get().click();
-                    Thread.sleep(10000);
+                    Optional<WebElement> element = pagelinks.stream().filter(a -> CommonUtils.cleanTextNumber(a.getAttribute("innerHTML")).equals(index)).findFirst();
+                    if (!element.isPresent())
+                        break;
+                    element.get().click();
+                    Thread.sleep(1000);
                 }
                 WebElement table = webDriverMain.findElement(By.id("trade")).findElement(By.className("objbox")).findElement(By.tagName("table")).findElement(By.tagName("tbody"));
                 List<WebElement> trs = table.findElements(By.tagName("tr"));
@@ -175,7 +194,7 @@ public class TSETMCService {
                     List<WebElement> tds = trs.get(j).findElements(By.tagName("td"));
                     InstrumentData instrumentData = new InstrumentData();
                     instrumentData.setBourseAccount(item.getBourseAccount());
-                    instrumentData.setId(getId(item.getInstrumentLink()));
+                    instrumentData.setTsetmcId(getId(item.getInstrumentLink()));
                     for (int k = 0; k < tds.size(); k++) {
                         switch (k) {
                             case 15:
@@ -292,10 +311,33 @@ public class TSETMCService {
             instrument.setBoardCode(Long.valueOf(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد تابلو")).findFirst().get().getValue()));
             instrument.setIndustrySubgroupCode(Long.valueOf(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد زیر گروه صنعت")).findFirst().get().getValue()));
             instrument.setIndustrySubgroupName(instrumentIdList.stream().filter(a -> a.getCaption().equals("زیر گروه صنعت")).findFirst().get().getValue());
-            instrument.setTsetmsId(Long.valueOf(getId(instrumentDto.getInstrumentLink())));
+            instrument.setTsetmsId(getId(instrumentDto.getInstrumentLink()));
             String code = instrumentIdList.stream().filter(a -> a.getCaption().equals("کد گروه صنعت")).findFirst().get().getValue().trim();
             instrument.setIndustryId(industries.stream().filter(a -> a.getCode().equals(Integer.parseInt(code))).findFirst().get().getId());
             instrumentJPAGenericService.insert(instrument);
         }
+    }
+
+    @Transactional
+    public void saveInstrumentPriceDate() throws Exception {
+        List<InstrumentData> instrumentDataList = instrumentDataMongoGenericService.findAll(InstrumentData.class);
+        List<Instrument> instrumentList = instrumentJPAGenericService.findAll(Instrument.class);
+        for (InstrumentData instrumentData : instrumentDataList) {
+            Instrument instrument = new Instrument();
+            InstrumentPriceDate instrumentPriceDate = new InstrumentPriceDate();
+            instrument.setId(instrumentList.stream().filter(a -> a.getTsetmsId().equals(instrumentData.getTsetmcId())).findFirst().get().getId());
+            instrumentPriceDate.setInstrument(instrument);
+            instrumentPriceDate.setPriceDate(instrumentData.getDate());
+            instrumentPriceDate.setFirstPrice(instrumentData.getFirstPrice());
+            instrumentPriceDate.setLastDayPrice(instrumentData.getFinalPrice());
+            instrumentPriceDate.setLastTradePrice(instrumentData.getLastPrice());
+            instrumentPriceDate.setLowestPrice(instrumentData.getMinPrice());
+            instrumentPriceDate.setHighestPrice(instrumentData.getMaxPrice());
+            instrumentPriceDate.setValue(instrumentData.getValue());
+            instrumentPriceDate.setValuePrice(instrumentData.getVolume());
+            instrumentPriceDate.setNumberOfTransactions(instrumentData.getUnit());
+            instrumentPriceDateJPAGenericService.insert(instrumentPriceDate);
+        }
+
     }
 }

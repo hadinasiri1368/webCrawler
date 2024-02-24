@@ -21,5 +21,5 @@ public class InstrumentData {
     Long finalPrice;
     Long minPrice;
     Long maxPrice;
-    String id;
+    String tsetmcId;
 }

@@ -40,7 +40,7 @@ public class Instrument {
     private Long industrySubgroupCode;
     @Column(columnDefinition = "nvarchar(100)", name = "industry_subgroup_name")
     private String industrySubgroupName;
-    @Column(columnDefinition = "decimal(18, 0)", name = "tsetms_id")
-    private Long tsetmsId;
+    @Column(columnDefinition = "nvarchar(100)", name = "tsetms_id")
+    private String tsetmsId;
 
 }
