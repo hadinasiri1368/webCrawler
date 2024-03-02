@@ -268,7 +268,6 @@ public class API {
     @GetMapping(path = "/api/getTrades")
     public List<Trades> getTrades() throws Exception {
         List<Trades> tradesList = new ArrayList<>();
-        TSETMCService tsetmcService = new TSETMCService();
         List<InstrumentDto> instrumentDtos = instrumentDtoMongoGenericService.findAll(InstrumentDto.class);
 
         for (InstrumentDto item : instrumentDtos) {

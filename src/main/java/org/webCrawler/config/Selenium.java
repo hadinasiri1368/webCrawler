@@ -6,17 +6,20 @@ import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.web.context.WebApplicationContext;
 import org.webCrawler.common.CommonUtils;
 
 import java.io.File;
 
+@Configuration
 public class Selenium {
-    public WebDriver webDriver() {
-        String driverFile = CommonUtils.findFile();
-        if (driverFile == null)
-            return null;
+    @Bean
+    @Scope(value = WebApplicationContext.SCOPE_REQUEST, proxyMode = ScopedProxyMode.TARGET_CLASS)
+    public WebDriver webDriver(){
         ChromeDriverService service = new ChromeDriverService.Builder()
-                .usingDriverExecutable(new File(driverFile))
+                .usingDriverExecutable(new File(CommonUtils.findFile()))
                 .build();
         ChromeOptions options = new ChromeOptions();
 //        options.addArguments("--no-sandbox"); // Bypass OS security model, MUST BE THE VERY FIRST OPTION

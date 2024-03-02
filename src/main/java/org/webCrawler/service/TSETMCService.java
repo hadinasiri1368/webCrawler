@@ -36,6 +36,8 @@ public class TSETMCService {
     private MongoGenericService<InstrumentData> instrumentDataMongoGenericService;
     @Autowired
     private JPAGenericService<InstrumentPriceDate> instrumentPriceDateJPAGenericService;
+    @Autowired
+    private WebDriver webDriver;
 
     public List<InstrumentDto> getInstrument() throws Exception {
         List<InstrumentDto> list = new ArrayList<>();
@@ -239,7 +241,7 @@ public class TSETMCService {
 
 
     public List<Trades> getTrades(List<InstrumentData> instrumentData, String instrumenId) throws Exception {
-        WebDriver webDriverMain = new Selenium().webDriver();
+        WebDriver webDriverMain = webDriver;
         List<Trades> tradesList = new ArrayList<>();
         for (InstrumentData item : instrumentData) {
             LocalDate localDate = DateUtil.getGregorianDate(item.getDate());
