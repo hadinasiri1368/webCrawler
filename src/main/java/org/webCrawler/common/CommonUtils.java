@@ -7,19 +7,16 @@ import org.webCrawler.dto.*;
 import org.webCrawler.model.*;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class CommonUtils {
-    private static final String CHROMEDRIVER_EXE = "D:\\java\\webCrawler\\chromedriver-win64\\chromedriver.exe";
+    private static final String CHROMEDRIVER_EXE = "F:\\java\\webCrawler\\chromedriver-win64\\chromedriver.exe";
 
     public static String findFile() {
         try {
@@ -233,6 +230,7 @@ public class CommonUtils {
             LocalDate md = DateUtil.getGregorianDate(codalShareholderMeeting.getMeetingDate()).plusMonths(2);
             codalShareholderMeeting.setIpoDate(DateUtil.getJalaliDate(md));
             codalShareholderMeeting.setRenewedIpoDate(DateUtil.getJalaliDate(md));
+            recapPercent(codalShareholderMeeting);
         } else
             codalShareholderMeeting.setMeetingStatus(MeetingStatus.builder().id(MeetingStatuses.NOT_HAVE_TABLE.getValue()).build());
 
@@ -283,6 +281,7 @@ public class CommonUtils {
             LocalDate md = DateUtil.getGregorianDate(codalShareholderMeeting.getMeetingDate()).plusMonths(2);
             codalShareholderMeeting.setIpoDate(DateUtil.getJalaliDate(md));
             codalShareholderMeeting.setRenewedIpoDate(DateUtil.getJalaliDate(md));
+            recapPercent(codalShareholderMeeting);
         } else
             codalShareholderMeeting.setMeetingStatus(MeetingStatus.builder().id(MeetingStatuses.NOT_HAVE_TABLE.getValue()).build());
 
@@ -318,6 +317,7 @@ public class CommonUtils {
         codalShareholderMeeting.setMeetingType(MeetingType.builder().id(MeetingTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING.getValue()).build());
         return codalShareholderMeeting;
     }
+
     public static String arabicToDecimal(String number) {
         char[] chars = new char[number.length()];
         for (int i = 0; i < number.length(); i++) {
@@ -332,10 +332,38 @@ public class CommonUtils {
     }
 
     public static String replaceFarsiChars(String word) {
-        word = word.replaceAll("ك","ک");
-        word = word.replaceAll("ي","ی");
-            return word;
+        word = word.replaceAll("ك", "ک");
+        word = word.replaceAll("ي", "ی");
+        return word;
+    }
+
+    public static String reverse(String word) {
+        String nstr = "";
+        char ch;
+
+        for (int i = 0; i < word.length(); i++) {
+            ch = word.charAt(i); //extracts each character
+            nstr = ch + nstr; //adds each character in front of the existing string
         }
+        return nstr;
+    }
+
+    public static boolean isUTF8(String word) {
+        try {
+            byte[] bytes = word.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        return true;
+    }
+
+    public static CodalShareholderMeeting recapPercent(CodalShareholderMeeting codalShareholderMeeting) {
+        codalShareholderMeeting.setGiftRecapPercent(((double) ((codalShareholderMeeting.getGiftRecapAmount() + (codalShareholderMeeting.getExtraReErvalRecap() + codalShareholderMeeting.getDeprivationRight() +
+                codalShareholderMeeting.getExtraReErvalRecap() + codalShareholderMeeting.getSavedRecap())) / codalShareholderMeeting.getLastAssetAmount())) * 100);
+        codalShareholderMeeting.setIpoRecapPercent((double) ((codalShareholderMeeting.getIpoRecapAmount() / codalShareholderMeeting.getLastAssetAmount()) * 100));
+        return codalShareholderMeeting;
+    }
 
 }
 

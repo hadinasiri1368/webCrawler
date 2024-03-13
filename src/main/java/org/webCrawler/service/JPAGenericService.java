@@ -1,6 +1,7 @@
 package org.webCrawler.service;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import org.webCrawler.repository.JPA;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -62,7 +64,16 @@ public class JPAGenericService<Entity> {
     public List<Entity> findAll(Class<Entity> aClass) {
         return genericJPA.findAll(aClass);
     }
-
+    public List listByQuery(Query query, Map<String, Object> param) {
+        if (!CommonUtils.isNull(param) && param.size() > 0)
+            for (String key : param.keySet()) {
+                query.setParameter(key, param.get(key));
+            }
+        return query.getResultList();
+    }
+    public void persist(Object o) {
+        entityManager.persist(o);
+    }
 
 }
 

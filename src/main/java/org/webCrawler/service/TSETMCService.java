@@ -1,7 +1,6 @@
 package org.webCrawler.service;
 
 import jakarta.transaction.Transactional;
-import org.checkerframework.checker.units.qual.A;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -11,7 +10,6 @@ import org.webCrawler.common.CommonUtils;
 import org.webCrawler.common.DateUtil;
 import org.webCrawler.config.Selenium;
 import org.webCrawler.dto.*;
-import org.webCrawler.model.Columns;
 import org.webCrawler.model.Industry;
 import org.webCrawler.model.Instrument;
 import org.webCrawler.model.InstrumentPriceDate;
@@ -55,7 +53,7 @@ public class TSETMCService {
                 btnnew.click();
                 Thread.sleep(1000);
                 webDriverMain.findElement(By.id("InputFilterCode")).clear();
-                webDriverMain.findElement(By.id("InputFilterCode")).sendKeys("(cs)==1");
+                webDriverMain.findElement(By.id("InputFilterCode")).sendKeys("(l18).indexOf(\"ب\")==0");
                 webDriverMain.findElement(By.id("InputFilterName")).clear();
                 webDriverMain.findElement(By.id("InputFilterName")).sendKeys("کل نمادها");
                 btnnew = webDriverMain.findElements(By.className("awesome")).stream().filter(a -> a.getAttribute("innerHTML").contains("ثبت")).findFirst().get();
@@ -69,7 +67,7 @@ public class TSETMCService {
                 btnnew.click();
                 Thread.sleep(1000);
                 webDriverMain.findElement(By.id("InputFilterCode")).clear();
-                webDriverMain.findElement(By.id("InputFilterCode")).sendKeys("(cs)==1");
+                webDriverMain.findElement(By.id("InputFilterCode")).sendKeys("(l18).indexOf(\"ب\")==0");
                 webDriverMain.findElement(By.id("InputFilterName")).clear();
                 webDriverMain.findElement(By.id("InputFilterName")).sendKeys("هیچ اطلاعات");
                 btnnew = webDriverMain.findElements(By.className("awesome")).stream().filter(a -> a.getAttribute("innerHTML").contains("ثبت")).findFirst().get();
@@ -158,6 +156,7 @@ public class TSETMCService {
             webDriverMain.get(item.getInstrumentLink());
             Thread.sleep(10000);
             List<WebElement> links = webDriverMain.findElement(By.className("menu2")).findElements(By.tagName("a"));
+            webDriverMain.manage().window().maximize();
 //            if (CommonUtils.isNull(links) || links.stream().filter(a -> a.getAttribute("innerHTML").equals("سابقه")).count() == 0) {
 //                webDriverMain.get(item.getInstrumentLink());
 //                Thread.sleep(10000);
@@ -238,7 +237,6 @@ public class TSETMCService {
         webDriverMain.close();
         return instrumentDataList;
     }
-
 
     public List<Trades> getTrades(List<InstrumentData> instrumentData, String instrumenId) throws Exception {
         WebDriver webDriverMain = webDriver;
@@ -342,4 +340,50 @@ public class TSETMCService {
         }
 
     }
+    public List<InstrumentId> getInstrumentId(String instrumentName) throws Exception {
+        Thread.sleep(1000);
+        webDriver.get("https://tsetmc.com/");
+        webDriver.findElement(By.id("search")).click();
+        webDriver.findElement(By.id("Search")).click();
+        webDriver.findElement(By.id("Search")).sendKeys(instrumentName);
+        Thread.sleep(5000);
+        WebElement table = webDriver.findElement(By.id("SearchResult")).findElement(By.className("table1")).findElement(By.tagName("tbody"));
+        List<WebElement> trs = table.findElements(By.tagName("tr"));
+        List<InstrumentId> instrumentIds = new ArrayList<>();
+        List<String> strings = new ArrayList<>();
+        for (WebElement element : trs) {
+            String href = element.findElement(By.tagName("td")).findElement(By.tagName("a")).getDomProperty("href");
+            strings.add(href);
+        }
+        for (String link : strings) {
+            webDriver.get(link);
+            Thread.sleep(1000);
+            List<WebElement> links = webDriver.findElement(By.className("menu2")).findElements(By.tagName("a"));
+            links.stream().filter(a -> a.getAttribute("innerHTML").equals("شناسه")).findFirst().get().click();
+            Thread.sleep(10000);
+            WebElement div = webDriver.findElement(By.id("IdentityContent"));
+            WebElement table2 = div.findElement(By.className("table1"));
+            table2 = table2.findElement(By.tagName("tbody"));
+            List<WebElement> trs2 = table2.findElements(By.tagName("tr"));
+            for (WebElement element2 : trs2) {
+                String caption = element2.findElements(By.tagName("td")).get(0).getAttribute("innerHTML");
+                String value = element2.findElements(By.tagName("td")).get(1).getAttribute("innerHTML");
+                instrumentIds.add(new InstrumentId(null, caption, value));
+            }
+            String bourseAccount = instrumentIds.stream().filter(a -> a.getCaption().equals("نماد فارسی") && !CommonUtils.isNull(a.getValue())).reduce((a, b) -> b).get().getValue().trim();
+            String name = instrumentIds.stream().filter(a -> a.getCaption().equals("نام شرکت") && !CommonUtils.isNull(a.getValue())).reduce((a, b) -> b).get().getValue().trim();
+            String groupName = instrumentIds.stream().filter(a -> a.getCaption().equals("گروه صنعت") && !CommonUtils.isNull(a.getValue())).reduce((a, b) -> b).get().getValue().trim();
+            for (InstrumentId instrumentId : instrumentIds) {
+                instrumentId.setBourseAccount(bourseAccount);
+            }
+            InstrumentDto instrumentDto = new InstrumentDto(bourseAccount, name, groupName, link);
+            instrumentDtoMongoGenericService.add(instrumentDto);
+            for (InstrumentId instrumentId : instrumentIds) {
+                instrumentIdMongoGenericService.add(instrumentId);
+            }
+        }
+        webDriver.close();
+        return instrumentIds;
+    }
+
 }

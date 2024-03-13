@@ -17,6 +17,9 @@ public class CodalShareholderMeeting {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
+    @JoinColumn(name = "f_instrument_id")
+    private Instrument instrument;
+    @ManyToOne
     @JoinColumn(name = "f_letter_type_id")
     private LetterType letterType;
     @ManyToOne
@@ -59,4 +62,8 @@ public class CodalShareholderMeeting {
     private String confirmDate;
     @Column(columnDefinition = "NVARCHAR(500)")
     private String url;
+    @Column(columnDefinition = "float" , name = "theoretical_price_last_trade")
+    private Float theoreticalPriceLastTrade;
+    @Column(columnDefinition = "float" , name = "theoretical_price_last_day")
+    private Float theoreticalPriceLastDay;
 }

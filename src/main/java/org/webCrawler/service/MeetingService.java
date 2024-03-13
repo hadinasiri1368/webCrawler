@@ -1,5 +1,7 @@
 package org.webCrawler.service;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -8,18 +10,19 @@ import org.openqa.selenium.support.ui.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.webCrawler.common.CommonUtils;
+import org.webCrawler.common.LettersTypes;
 import org.webCrawler.config.Selenium;
 import org.webCrawler.dto.*;
 import org.webCrawler.model.*;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 
 @Service
 public class MeetingService {
+    @Autowired
+    MongoGenericService<ExtraAssemblyDto> extraAssembly;
     @Autowired
     private JPAGenericService<Industry> industryJPAGenericService;
     @Autowired
@@ -36,8 +39,15 @@ public class MeetingService {
     private JPAGenericService<Instrument> instrumentJPAGenericService;
     @Autowired
     private JPAGenericService<IncomeStatementDetail> incomeStatementDetailService;
+    @Autowired
+    JPAGenericService<CodalShareholderMeeting> codalShareholderMeetingGenericService;
+    @Autowired
+    private EntityManager entityManager;
+    @Autowired
+    private JPAGenericService<InstrumentPriceDate> instrumentPriceDateJPAGenericService;
+
     //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Childs=false";
-    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=زشریف&Childs=false";
+    private String webUrl = "https://www.codal.ir/ReportList.aspx?search";
 //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=ومعلم";
 
     public void setMeetingService(String date, String endDate) {
@@ -863,5 +873,36 @@ public class MeetingService {
         }
     }
 
+    public void saveCodalShareHolderMeeting() throws Exception {
+        List<Instrument> instrumentList = instrumentJPAGenericService.findAll(Instrument.class);
+        List<ExtraAssemblyDto> extraAssemblyDtos = extraAssembly.findAll(ExtraAssemblyDto.class);
+        for (ExtraAssemblyDto extraAssemblyDto : extraAssemblyDtos) {
+            CodalShareholderMeeting codalShareholderMeeting = CommonUtils.convertTo(extraAssemblyDto, LettersTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING);
+            Instrument instrument = instrumentList.stream().filter(a -> CommonUtils.replaceFarsiChars(a.getInstrumentName()).equals(CommonUtils.replaceFarsiChars(extraAssemblyDto.getBourseAccount()))).findFirst().get();
+            if (!CommonUtils.isNull(instrument)) {
+                codalShareholderMeeting.setInstrument(instrument);
+                theoreticalPrice(codalShareholderMeeting);
+                codalShareholderMeetingGenericService.insert(codalShareholderMeeting);
+            }
+        }
+
+    }
+
+    public void theoreticalPrice(CodalShareholderMeeting codalShareholderMeeting) {
+        String hql = "select p from instrumentPriceDate p where p.id in (SELECT max(id)  FROM instrumentPriceDate o where o.priceDate<=:meetingDate and o.instrument=:instrumentId)";
+        Query query = entityManager.createQuery(hql);
+        Map<String, Object> param = new HashMap<>();
+        param.put("meetingDate", codalShareholderMeeting.getMeetingDate());
+        param.put("instrumentId", codalShareholderMeeting.getInstrument());
+        List<InstrumentPriceDate> instrumentPriceDates = (List<InstrumentPriceDate>) instrumentPriceDateJPAGenericService.listByQuery(query, param);
+        InstrumentPriceDate instrumentPriceDate = instrumentPriceDates.get(0);
+        Long lsatDayPrice = instrumentPriceDate.getLastDayPrice();
+        Long LastTradePrice = instrumentPriceDate.getLastTradePrice();
+        Long shareProfit = codalShareholderMeeting.getShareProfit();
+        Double giftRecapPercent = codalShareholderMeeting.getGiftRecapPercent();
+        Double ipoRecapPercent = codalShareholderMeeting.getIpoRecapPercent();
+        codalShareholderMeeting.setTheoreticalPriceLastDay((float) ((lsatDayPrice - shareProfit) + (giftRecapPercent * 1000) + (ipoRecapPercent * 1000) / (1 + giftRecapPercent + ipoRecapPercent)));
+        codalShareholderMeeting.setTheoreticalPriceLastTrade((float) ((LastTradePrice - shareProfit) + (giftRecapPercent * 1000) + (ipoRecapPercent * 1000) / (1 + giftRecapPercent + ipoRecapPercent)));
+    }
 }
 

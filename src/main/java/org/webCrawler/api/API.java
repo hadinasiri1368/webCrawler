@@ -65,13 +65,12 @@ public class API {
         List<ExtraAssemblyDto> extraAssemblyDtos = new ArrayList<>();
         meetingService.setMeetingService(startDate, endDate);
         extraAssemblyDtos = meetingService.getExtraAssemblyList(LettersTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING.getLettersTypeValue().toString());
-        CodalShareholderMeeting codalShareholderMeeting = new CodalShareholderMeeting();
         for (ExtraAssemblyDto item : extraAssemblyDtos) {
             extraAssembl.add(item);
-            codalShareholderMeetingGenericService.insert(CommonUtils.convertTo(item, LettersTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING));
         }
         return extraAssemblyDtos;
     }
+
 
     @GetMapping(path = "/api/summaryExtraAssemblyShareholderMeeting")
     public List<ExtraAssemblyDto> getSummaryExtraAssemblyShareholderMeeting(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) throws Exception {
@@ -297,19 +296,32 @@ public class API {
     }
 
     @GetMapping(path = "/api/getIncomeStatement")
-    public List<IncomeStatement> getIncomeStatement() throws Exception{
+    public List<IncomeStatement> getIncomeStatement() throws Exception {
         List<IncomeStatement> incomeStatements = new ArrayList<>();
         meetingService.saveIncomeStatement();
         return incomeStatements;
 
     }
 
-    @GetMapping(path = "/api/getInstrumentPriceDate")
-    public List<InstrumentPriceDate> getInstrumentPriceDate() throws Exception{
+    @GetMapping(path = "/api/getInstrumentsPriceDate")
+    public List<InstrumentPriceDate> getInstrumentsPriceDate() throws Exception {
         List<InstrumentPriceDate> instrumentPriceDates = new ArrayList<>();
         tsetmcService.saveInstrumentPriceDate();
         return instrumentPriceDates;
 
+    }
+
+
+    @GetMapping(path = "/api/summaryExtraAssemblyShareholderMeetingT")
+    public List<CodalShareholderMeeting> getCodalShareholderMeeting() throws Exception {
+        List<CodalShareholderMeeting> codalShareholderMeetings = new ArrayList<>();
+        meetingService.saveCodalShareHolderMeeting();
+        return codalShareholderMeetings;
+    }
+
+    @GetMapping(path = "/api/getInstrumentId")
+    public List<InstrumentId> getInstrumentId(@RequestParam("bourseAccount") String bourseAccount) throws Exception {
+        return tsetmcService.getInstrumentId(bourseAccount);
     }
 
 }
