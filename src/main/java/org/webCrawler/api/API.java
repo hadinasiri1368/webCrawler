@@ -290,9 +290,7 @@ public class API {
 
     @GetMapping(path = "/api/getInstruments")
     public List<Instrument> getInstruments() throws Exception {
-        List<Instrument> instruments = new ArrayList<>();
-        tsetmcService.saveInstruments();
-        return instruments;
+        return tsetmcService.saveInstruments();
     }
 
     @GetMapping(path = "/api/getIncomeStatement")
@@ -305,24 +303,24 @@ public class API {
 
     @GetMapping(path = "/api/getInstrumentsPriceDate")
     public List<InstrumentPriceDate> getInstrumentsPriceDate() throws Exception {
-        List<InstrumentPriceDate> instrumentPriceDates = new ArrayList<>();
-        tsetmcService.saveInstrumentPriceDate();
-        return instrumentPriceDates;
-
+        return  tsetmcService.saveInstrumentPriceDate();
     }
 
 
     @GetMapping(path = "/api/summaryExtraAssemblyShareholderMeetingT")
     public List<CodalShareholderMeeting> getCodalShareholderMeeting() throws Exception {
-        List<CodalShareholderMeeting> codalShareholderMeetings = new ArrayList<>();
-        meetingService.saveCodalShareHolderMeeting();
-        return codalShareholderMeetings;
+        return meetingService.saveCodalShareHolderMeeting();
     }
 
     @GetMapping(path = "/api/getInstrumentId")
     public List<InstrumentId> getInstrumentId(@RequestParam("bourseAccount") String bourseAccount) throws Exception {
         return tsetmcService.getInstrumentId(bourseAccount);
     }
+
+//    @GetMapping(path = "/api/getTradeDate")
+//    public List <InstrumentData> getTradeDate (@RequestParam("bourseAccount") String bourseAccount , @RequestParam("tradDate") String tradDate) throws Exception {
+//        return  tsetmcService.getTradeDate(bourseAccount,tradDate);
+//    }
 
 }
 

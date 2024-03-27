@@ -224,9 +224,9 @@ public class CommonUtils {
             codalShareholderMeeting.setIpoRecapAmount(extraAssemblyDto.getDecisionsMades().get(0).getCash());
             codalShareholderMeeting.setGiftRecapAmount(extraAssemblyDto.getDecisionsMades().get(0).getAccumulatedProfit());
             codalShareholderMeeting.setSavedRecap(extraAssemblyDto.getDecisionsMades().get(0).getSavedUp());
-            codalShareholderMeeting.setExtraReErvalRecap(extraAssemblyDto.getDecisionsMades().get(0).getStock());
-            codalShareholderMeeting.setStockDifferenceRecap(extraAssemblyDto.getDecisionsMades().get(0).getEntryCash());
-            codalShareholderMeeting.setDeprivationRight(extraAssemblyDto.getDecisionsMades().get(0).getCapitalIncrease());
+            codalShareholderMeeting.setExtraReErvalRecap(extraAssemblyDto.getDecisionsMades().get(0).getAsset());
+            codalShareholderMeeting.setStockDifferenceRecap(extraAssemblyDto.getDecisionsMades().get(0).getStock());
+            codalShareholderMeeting.setDeprivationRight(extraAssemblyDto.getDecisionsMades().get(0).getEntryCash());
             LocalDate md = DateUtil.getGregorianDate(codalShareholderMeeting.getMeetingDate()).plusMonths(2);
             codalShareholderMeeting.setIpoDate(DateUtil.getJalaliDate(md));
             codalShareholderMeeting.setRenewedIpoDate(DateUtil.getJalaliDate(md));
@@ -359,9 +359,9 @@ public class CommonUtils {
     }
 
     public static CodalShareholderMeeting recapPercent(CodalShareholderMeeting codalShareholderMeeting) {
-        codalShareholderMeeting.setGiftRecapPercent(((double) ((codalShareholderMeeting.getGiftRecapAmount() + (codalShareholderMeeting.getExtraReErvalRecap() + codalShareholderMeeting.getDeprivationRight() +
-                codalShareholderMeeting.getExtraReErvalRecap() + codalShareholderMeeting.getSavedRecap())) / codalShareholderMeeting.getLastAssetAmount())) * 100);
-        codalShareholderMeeting.setIpoRecapPercent((double) ((codalShareholderMeeting.getIpoRecapAmount() / codalShareholderMeeting.getLastAssetAmount()) * 100));
+        codalShareholderMeeting.setGiftRecapPercent((double) ((codalShareholderMeeting.getGiftRecapAmount() + codalShareholderMeeting.getExtraReErvalRecap() + codalShareholderMeeting.getDeprivationRight() +
+                codalShareholderMeeting.getExtraReErvalRecap() + codalShareholderMeeting.getSavedRecap()) * 100) / codalShareholderMeeting.getLastAssetAmount());
+        codalShareholderMeeting.setIpoRecapPercent((double) ((codalShareholderMeeting.getIpoRecapAmount() * 100) / codalShareholderMeeting.getLastAssetAmount()));
         return codalShareholderMeeting;
     }
 

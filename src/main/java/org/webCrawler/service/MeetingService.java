@@ -10,17 +10,22 @@ import org.openqa.selenium.support.ui.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.webCrawler.common.CommonUtils;
+import org.webCrawler.common.DateUtil;
 import org.webCrawler.common.LettersTypes;
+import org.webCrawler.common.MeetingStatuses;
 import org.webCrawler.config.Selenium;
 import org.webCrawler.dto.*;
 import org.webCrawler.model.*;
 
 
+import java.time.LocalDate;
 import java.util.*;
 
 
 @Service
 public class MeetingService {
+    @Autowired
+    private WebDriver webDriver;
     @Autowired
     MongoGenericService<ExtraAssemblyDto> extraAssembly;
     @Autowired
@@ -40,7 +45,7 @@ public class MeetingService {
     @Autowired
     private JPAGenericService<IncomeStatementDetail> incomeStatementDetailService;
     @Autowired
-    JPAGenericService<CodalShareholderMeeting> codalShareholderMeetingGenericService;
+    private JPAGenericService<CodalShareholderMeeting> codalShareholderMeetingGenericService;
     @Autowired
     private EntityManager entityManager;
     @Autowired
@@ -873,36 +878,110 @@ public class MeetingService {
         }
     }
 
-    public void saveCodalShareHolderMeeting() throws Exception {
+    @Transactional
+    public List<CodalShareholderMeeting> saveCodalShareHolderMeeting() throws Exception {
         List<Instrument> instrumentList = instrumentJPAGenericService.findAll(Instrument.class);
         List<ExtraAssemblyDto> extraAssemblyDtos = extraAssembly.findAll(ExtraAssemblyDto.class);
+        List<CodalShareholderMeeting> codalShareholderMeetings = new ArrayList<>();
+        StringBuilder bourseAccount = new StringBuilder();
         for (ExtraAssemblyDto extraAssemblyDto : extraAssemblyDtos) {
             CodalShareholderMeeting codalShareholderMeeting = CommonUtils.convertTo(extraAssemblyDto, LettersTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING);
-            Instrument instrument = instrumentList.stream().filter(a -> CommonUtils.replaceFarsiChars(a.getInstrumentName()).equals(CommonUtils.replaceFarsiChars(extraAssemblyDto.getBourseAccount()))).findFirst().get();
-            if (!CommonUtils.isNull(instrument)) {
-                codalShareholderMeeting.setInstrument(instrument);
+            Optional<Instrument> instrument = instrumentList.stream().filter(a -> CommonUtils.replaceFarsiChars(a.getInstrumentName()).equals(CommonUtils.replaceFarsiChars(extraAssemblyDto.getBourseAccount()))).findFirst();
+            if (instrument.isPresent()) {
+                codalShareholderMeeting.setInstrument(instrument.get());
+                if (codalShareholderMeeting.getMeetingStatus().getId().equals(MeetingStatuses.NOT_HAVE_TABLE.getValue()) ||
+                        codalShareholderMeeting.getMeetingStatus().getId().equals(MeetingStatuses.ZERO_SHAREHOLDER_MEETING.getValue()))
+                    continue;
                 theoreticalPrice(codalShareholderMeeting);
+                codalShareholderMeetings.add(codalShareholderMeeting);
                 codalShareholderMeetingGenericService.insert(codalShareholderMeeting);
+            } else {
+                bourseAccount.append(extraAssemblyDto.getBourseAccount()).append(" ,");
             }
         }
-
+        System.out.println("have.not.instrument: " + bourseAccount);
+        return codalShareholderMeetings;
     }
 
-    public void theoreticalPrice(CodalShareholderMeeting codalShareholderMeeting) {
-        String hql = "select p from instrumentPriceDate p where p.id in (SELECT max(id)  FROM instrumentPriceDate o where o.priceDate<=:meetingDate and o.instrument=:instrumentId)";
+    public void theoreticalPrice(CodalShareholderMeeting codalShareholderMeeting) throws Exception {
+        String hql = "select p from instrumentPriceDate p where p.instrument= :instrumentId and  p.priceDate in (SELECT max(priceDate)  FROM instrumentPriceDate o where o.priceDate<=:meetingDate and o.instrument=:instrumentId)";
         Query query = entityManager.createQuery(hql);
         Map<String, Object> param = new HashMap<>();
         param.put("meetingDate", codalShareholderMeeting.getMeetingDate());
         param.put("instrumentId", codalShareholderMeeting.getInstrument());
         List<InstrumentPriceDate> instrumentPriceDates = (List<InstrumentPriceDate>) instrumentPriceDateJPAGenericService.listByQuery(query, param);
-        InstrumentPriceDate instrumentPriceDate = instrumentPriceDates.get(0);
-        Long lsatDayPrice = instrumentPriceDate.getLastDayPrice();
-        Long LastTradePrice = instrumentPriceDate.getLastTradePrice();
-        Long shareProfit = codalShareholderMeeting.getShareProfit();
-        Double giftRecapPercent = codalShareholderMeeting.getGiftRecapPercent();
-        Double ipoRecapPercent = codalShareholderMeeting.getIpoRecapPercent();
-        codalShareholderMeeting.setTheoreticalPriceLastDay((float) ((lsatDayPrice - shareProfit) + (giftRecapPercent * 1000) + (ipoRecapPercent * 1000) / (1 + giftRecapPercent + ipoRecapPercent)));
-        codalShareholderMeeting.setTheoreticalPriceLastTrade((float) ((LastTradePrice - shareProfit) + (giftRecapPercent * 1000) + (ipoRecapPercent * 1000) / (1 + giftRecapPercent + ipoRecapPercent)));
+        if (!instrumentPriceDates.isEmpty()) {
+            InstrumentPriceDate instrumentPriceDate = instrumentPriceDates.get(0);
+            Long lsatDayPrice = instrumentPriceDate.getLastDayPrice();
+            Long LastTradePrice = instrumentPriceDate.getLastTradePrice();
+            Long shareProfit = 0L;
+            double giftRecapPercent = 0D;
+            double ipoRecapPercent = 0D;
+            if (codalShareholderMeeting.getShareProfit() != null) {
+                shareProfit = codalShareholderMeeting.getShareProfit();
+            }
+            if (codalShareholderMeeting.getGiftRecapPercent() != null) {
+                giftRecapPercent = codalShareholderMeeting.getGiftRecapPercent();
+            }
+            if (codalShareholderMeeting.getIpoRecapPercent() != null) {
+                ipoRecapPercent = codalShareholderMeeting.getIpoRecapPercent();
+            }
+            codalShareholderMeeting.setTheoreticalPriceLastDay((float) (((lsatDayPrice - shareProfit) + (ipoRecapPercent * 1000)) / (1 + (giftRecapPercent / 100) + (ipoRecapPercent / 100))));
+            codalShareholderMeeting.setTheoreticalPriceLastTrade((float) (((LastTradePrice - shareProfit) + (ipoRecapPercent * 1000)) / (1 + (giftRecapPercent / 100) + (ipoRecapPercent / 100))));
+        }
+        else {
+            getTradeDate(codalShareholderMeeting.getBourseAccount(),String.valueOf(codalShareholderMeeting.getMeetingDate()));
+
+        }
+        System.out.println("have.not.price: " + codalShareholderMeeting.getBourseAccount());
+    }
+
+    public List <InstrumentData> getTradeDate( String bourseAccount,String tradDate) throws Exception {
+        Thread.sleep(5000);
+        List<Instrument> instrumentList = instrumentJPAGenericService.findAll(Instrument.class);
+        LocalDate localDate = DateUtil.getGregorianDate(tradDate);
+        List<InstrumentData> instrumentDataList = new ArrayList<>();
+        InstrumentData instrumentData = new InstrumentData();
+        String tsetmcId = instrumentList.stream().filter(a -> CommonUtils.replaceFarsiChars(a.getInstrumentName()).equals(CommonUtils.replaceFarsiChars(bourseAccount))&& a.getIsDeleted().equals(false)).findFirst().get().getTsetmsId() ;
+        String link = String.format("https://main.tsetmc.com/History/%s/%s", tsetmcId, localDate.getYear() + "" + (localDate.getMonthValue() < 10 ? "0" + localDate.getMonthValue() : localDate.getMonthValue()) + "" + (localDate.getDayOfMonth() < 10 ? "0" + localDate.getDayOfMonth() : localDate.getDayOfMonth()));
+        webDriver.get(link);
+        Thread.sleep(5000);
+        List <WebElement> tbls = webDriver.findElements(By.tagName("table"));
+        WebElement table = webDriver.findElement(By.id("MainContent"));
+        List<WebElement> trs = table.findElements(By.tagName("tr"));
+        instrumentData.setBourseAccount(bourseAccount);
+        instrumentData.setTsetmcId(tsetmcId);
+        instrumentData.setDate(tradDate);
+        for (WebElement element : trs) {
+            if (element.findElements(By.tagName("td")).get(0).getAttribute("innerHTML").equals("آخرین معامله")){
+                String last=element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[2].replace(",","");
+                instrumentData.setLastPrice(Long.valueOf(last));
+            }
+
+            if (element.findElements(By.tagName("td")).get(0).getAttribute("innerHTML").equals("قیمت پایانی")){
+                String finalPrice= element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[2].replace(",","");
+                instrumentData.setFinalPrice(Long.valueOf(finalPrice));
+            }
+//            if (element.findElements(By.tagName("td")).get(0).getAttribute("innerHTML").equals("اولین قیمت")){
+//                String firstPrice = element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[2].replace(",","");
+//                instrumentData.setFinalPrice(Long.valueOf(firstPrice));
+//            }
+//            if (element.findElements(By.tagName("td")).get(0).getAttribute("innerHTML").equals("تعداد معاملات")){
+//                String unit = element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[2].replace(",","");
+//                instrumentData.setUnit(Long.valueOf(unit));
+//            }
+//            if (element.findElements(By.tagName("td")).get(0).getAttribute("innerHTML").equals("حجم معاملات")){
+//                double volume = (double) Long.parseLong(element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[2].replace(",",""))/1000000;
+//                instrumentData.setVolume(volume);
+//            }
+//            if (element.findElements(By.tagName("td")).get(0).getAttribute("innerHTML").equals("حجم معاملات")){
+//                double value = (double) Long.parseLong(element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[2].replace(",", "")) /1000000000;
+//                instrumentData.setValue(value);
+//            }
+
+        }
+        instrumentDataList.add(instrumentData);
+        return instrumentDataList;
     }
 }
 
