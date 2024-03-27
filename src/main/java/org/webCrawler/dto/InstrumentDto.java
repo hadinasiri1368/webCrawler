@@ -14,4 +14,5 @@ public class InstrumentDto {
     private String name;
     private String groupName;
     private String instrumentLink;
+    private String isDeleted;
 }

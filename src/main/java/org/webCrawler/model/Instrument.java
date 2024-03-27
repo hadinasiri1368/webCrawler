@@ -42,5 +42,7 @@ public class Instrument {
     private String industrySubgroupName;
     @Column(columnDefinition = "nvarchar(100)", name = "tsetms_id")
     private String tsetmsId;
+    @Column(columnDefinition = "BIT", name = "is_deleted")
+    private Boolean isDeleted;
 
 }

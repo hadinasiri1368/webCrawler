@@ -15,9 +15,7 @@ import org.webCrawler.model.Instrument;
 import org.webCrawler.model.InstrumentPriceDate;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class TSETMCService {
@@ -37,6 +35,7 @@ public class TSETMCService {
     @Autowired
     private WebDriver webDriver;
 
+    @Transactional
     public List<InstrumentDto> getInstrument() throws Exception {
         List<InstrumentDto> list = new ArrayList<>();
         InstrumentDto instrumentDto = new InstrumentDto();
@@ -112,6 +111,7 @@ public class TSETMCService {
         return list;
     }
 
+    @Transactional
     public List<InstrumentId> getInstrumentIds(List<InstrumentDto> instrumentDtos) throws Exception {
         WebDriver webDriverMain = new Selenium().webDriver();
         List<InstrumentId> instrumentIds = new ArrayList<>();
@@ -146,17 +146,19 @@ public class TSETMCService {
     }
 
     public static String getId(String link) {
-        return link.split("\\?")[1].split("&")[1].split("=")[1];
+//        return link.split("\\?")[1].split("&")[1].split("=")[1];
+        return link.split("instInfo/")[1];
     }
 
+    @Transactional
     public List<InstrumentData> getInstrumentData(List<InstrumentDto> instrumentDtos) throws Exception {
         WebDriver webDriverMain = new Selenium().webDriver();
         List<InstrumentData> instrumentDataList = new ArrayList<>();
+        webDriverMain.manage().window().maximize();
         for (InstrumentDto item : instrumentDtos) {
-            webDriverMain.get(item.getInstrumentLink());
+            webDriverMain.get(item.getInstrumentLink().replace("tsetmc.com", "old.tsetmc.com"));
             Thread.sleep(10000);
             List<WebElement> links = webDriverMain.findElement(By.className("menu2")).findElements(By.tagName("a"));
-            webDriverMain.manage().window().maximize();
 //            if (CommonUtils.isNull(links) || links.stream().filter(a -> a.getAttribute("innerHTML").equals("سابقه")).count() == 0) {
 //                webDriverMain.get(item.getInstrumentLink());
 //                Thread.sleep(10000);
@@ -238,6 +240,7 @@ public class TSETMCService {
         return instrumentDataList;
     }
 
+    @Transactional
     public List<Trades> getTrades(List<InstrumentData> instrumentData, String instrumenId) throws Exception {
         WebDriver webDriverMain = webDriver;
         List<Trades> tradesList = new ArrayList<>();
@@ -288,102 +291,189 @@ public class TSETMCService {
         return tradesList;
     }
 
-    public void saveInstruments() throws Exception {
+    @Transactional
+    public List<Instrument> saveInstruments() throws Exception {
         List<InstrumentDto> instrumentDtos = new ArrayList<>();
         List<InstrumentId> instrumentIds = new ArrayList<>();
         List<Industry> industries = new ArrayList<>();
-        Instrument instrument = new Instrument();
+        List<Instrument> instrumentList = instrumentJPAGenericService.findAll(Instrument.class);
         instrumentDtos = instrumentDtoMongoGenericService.findAll(InstrumentDto.class);
         instrumentIds = instrumentIdMongoGenericService.findAll(InstrumentId.class);
         industries = industryJPAGenericService.findAll(Industry.class);
         for (InstrumentDto instrumentDto : instrumentDtos) {
-            instrument = new Instrument();
-            List<InstrumentId> instrumentIdList = instrumentIds.stream().filter(a -> a.getBourseAccount().equals(instrumentDto.getBourseAccount())).toList();
-            instrument.setInsMaxLcode(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد 12 رقمی نماد")).findFirst().get().getValue());
-            instrument.setInsMinLcode(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد 5 رقمی نماد")).findFirst().get().getValue());
-            instrument.setLatinName(instrumentIdList.stream().filter(a -> a.getCaption().equals("نام لاتین شرکت")).findFirst().get().getValue());
-            instrument.setFourDigitCompanyCode(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد 4 رقمی شرکت")).findFirst().get().getValue());
-            instrument.setCompanyName(instrumentIdList.stream().filter(a -> a.getCaption().equals("نام شرکت")).findFirst().get().getValue());
-            instrument.setInstrumentName(instrumentDto.getBourseAccount());
-            instrument.setInstrumentNameThirty(instrumentIdList.stream().filter(a -> a.getCaption().equals("نماد 30 رقمی فارسی")).findFirst().get().getValue());
-            instrument.setIsinCode(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد 12 رقمی شرکت")).findFirst().get().getValue());
-            instrument.setMarket(instrumentIdList.stream().filter(a -> a.getCaption().equals("بازار")).findFirst().get().getValue());
-            instrument.setBoardCode(Long.valueOf(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد تابلو")).findFirst().get().getValue()));
-            instrument.setIndustrySubgroupCode(Long.valueOf(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد زیر گروه صنعت")).findFirst().get().getValue()));
-            instrument.setIndustrySubgroupName(instrumentIdList.stream().filter(a -> a.getCaption().equals("زیر گروه صنعت")).findFirst().get().getValue());
-            instrument.setTsetmsId(getId(instrumentDto.getInstrumentLink()));
-            String code = instrumentIdList.stream().filter(a -> a.getCaption().equals("کد گروه صنعت")).findFirst().get().getValue().trim();
-            instrument.setIndustryId(industries.stream().filter(a -> a.getCode().equals(Integer.parseInt(code))).findFirst().get().getId());
-            instrumentJPAGenericService.insert(instrument);
+            if (instrumentList.stream().filter(a -> a.getInstrumentName().equals(instrumentDto.getBourseAccount())).findAny().isEmpty()) {
+                Instrument instrument = new Instrument();
+                List<InstrumentId> instrumentIdList = instrumentIds.stream().filter(a -> a.getBourseAccount().equals(instrumentDto.getBourseAccount())).toList();
+                if (instrumentIdList.isEmpty()) {
+                    getInstrumentId(instrumentDto.getBourseAccount());
+                }
+                instrument.setInsMaxLcode(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد 12 رقمی نماد")).findFirst().get().getValue());
+                instrument.setInsMinLcode(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد 5 رقمی نماد")).findFirst().get().getValue());
+                instrument.setLatinName(instrumentIdList.stream().filter(a -> a.getCaption().equals("نام لاتین شرکت")).findFirst().get().getValue());
+                instrument.setFourDigitCompanyCode(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد 4 رقمی شرکت")).findFirst().get().getValue());
+                instrument.setCompanyName(instrumentIdList.stream().filter(a -> a.getCaption().equals("نام شرکت")).findFirst().get().getValue());
+                instrument.setInstrumentName(instrumentDto.getBourseAccount());
+                instrument.setInstrumentNameThirty(instrumentIdList.stream().filter(a -> a.getCaption().equals("نماد 30 رقمی فارسی")).findFirst().get().getValue());
+                instrument.setIsinCode(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد 12 رقمی شرکت")).findFirst().get().getValue());
+                instrument.setMarket(instrumentIdList.stream().filter(a -> a.getCaption().equals("بازار")).findFirst().get().getValue());
+                instrument.setBoardCode(Long.valueOf(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد تابلو")).findFirst().get().getValue()));
+                instrument.setIndustrySubgroupCode(Long.valueOf(instrumentIdList.stream().filter(a -> a.getCaption().equals("کد زیر گروه صنعت")).findFirst().get().getValue()));
+                instrument.setIndustrySubgroupName(instrumentIdList.stream().filter(a -> a.getCaption().equals("زیر گروه صنعت")).findFirst().get().getValue());
+                instrument.setTsetmsId(getId(instrumentDto.getInstrumentLink()));
+                instrument.setIsDeleted(Boolean.valueOf(instrumentDto.getIsDeleted()));
+                String code = instrumentIdList.stream().filter(a -> a.getCaption().equals("کد گروه صنعت")).findFirst().get().getValue().trim();
+                instrument.setIndustryId(industries.stream().filter(a -> a.getCode().equals(Integer.parseInt(code))).findFirst().get().getId());
+                instrumentJPAGenericService.insert(instrument);
+            }
         }
+        return instrumentList;
     }
 
     @Transactional
-    public void saveInstrumentPriceDate() throws Exception {
+    public List<InstrumentPriceDate> saveInstrumentPriceDate() throws Exception {
         List<InstrumentData> instrumentDataList = instrumentDataMongoGenericService.findAll(InstrumentData.class);
         List<Instrument> instrumentList = instrumentJPAGenericService.findAll(Instrument.class);
+        List<InstrumentPriceDate> instrumentPriceDates = new ArrayList<>();
         for (InstrumentData instrumentData : instrumentDataList) {
             Instrument instrument = new Instrument();
             InstrumentPriceDate instrumentPriceDate = new InstrumentPriceDate();
+            instrumentPriceDate = CommonUtils.convertTo(instrumentData);
             instrument.setId(instrumentList.stream().filter(a -> a.getTsetmsId().equals(instrumentData.getTsetmcId())).findFirst().get().getId());
             instrumentPriceDate.setInstrument(instrument);
-            instrumentPriceDate.setPriceDate(instrumentData.getDate());
-            instrumentPriceDate.setFirstPrice(instrumentData.getFirstPrice());
-            instrumentPriceDate.setLastDayPrice(instrumentData.getFinalPrice());
-            instrumentPriceDate.setLastTradePrice(instrumentData.getLastPrice());
-            instrumentPriceDate.setLowestPrice(instrumentData.getMinPrice());
-            instrumentPriceDate.setHighestPrice(instrumentData.getMaxPrice());
-            instrumentPriceDate.setValue(instrumentData.getValue());
-            instrumentPriceDate.setValuePrice(instrumentData.getVolume());
-            instrumentPriceDate.setNumberOfTransactions(instrumentData.getUnit());
             instrumentPriceDateJPAGenericService.insert(instrumentPriceDate);
         }
-
+        return instrumentPriceDates;
     }
+
+    @Transactional
     public List<InstrumentId> getInstrumentId(String instrumentName) throws Exception {
-        Thread.sleep(1000);
-        webDriver.get("https://tsetmc.com/");
+        Thread.sleep(5000);
+        webDriver.get("https://old.tsetmc.com/Loader.aspx?ParTree=15");
         webDriver.findElement(By.id("search")).click();
-        webDriver.findElement(By.id("Search")).click();
-        webDriver.findElement(By.id("Search")).sendKeys(instrumentName);
+        webDriver.findElement(By.id("SearchKey")).click();
+        webDriver.findElement(By.id("SearchKey")).sendKeys(instrumentName);
         Thread.sleep(5000);
         WebElement table = webDriver.findElement(By.id("SearchResult")).findElement(By.className("table1")).findElement(By.tagName("tbody"));
         List<WebElement> trs = table.findElements(By.tagName("tr"));
+        List<InstrumentDto> instrumentDtos = new ArrayList<>();
+        instrumentDtos = instrumentDtoMongoGenericService.findAll(InstrumentDto.class);
         List<InstrumentId> instrumentIds = new ArrayList<>();
-        List<String> strings = new ArrayList<>();
+        List<Map> maps = new ArrayList<>();
         for (WebElement element : trs) {
+            Map<String, String> stringMap = new HashMap<>();
             String href = element.findElement(By.tagName("td")).findElement(By.tagName("a")).getDomProperty("href");
-            strings.add(href);
+            href = href.replace("https://old.tsetmc.com/Loader.aspx?ParTree=151311&i=", "https://tsetmc.ir/instInfo/");
+            stringMap.put("link", href);
+            String isDeleted = element.findElement(By.tagName("td")).findElement(By.tagName("a")).getAttribute("innerHTML");
+            if (isDeleted.contains("(نماد قدیمی حذف شده)")) {
+                stringMap.put("isdeleted", String.valueOf(true));
+            } else {
+                stringMap.put("isdeleted", String.valueOf(false));
+            }
+            maps.add(stringMap);
+
         }
-        for (String link : strings) {
-            webDriver.get(link);
-            Thread.sleep(1000);
-            List<WebElement> links = webDriver.findElement(By.className("menu2")).findElements(By.tagName("a"));
-            links.stream().filter(a -> a.getAttribute("innerHTML").equals("شناسه")).findFirst().get().click();
-            Thread.sleep(10000);
-            WebElement div = webDriver.findElement(By.id("IdentityContent"));
-            WebElement table2 = div.findElement(By.className("table1"));
-            table2 = table2.findElement(By.tagName("tbody"));
-            List<WebElement> trs2 = table2.findElements(By.tagName("tr"));
-            for (WebElement element2 : trs2) {
-                String caption = element2.findElements(By.tagName("td")).get(0).getAttribute("innerHTML");
-                String value = element2.findElements(By.tagName("td")).get(1).getAttribute("innerHTML");
-                instrumentIds.add(new InstrumentId(null, caption, value));
-            }
-            String bourseAccount = instrumentIds.stream().filter(a -> a.getCaption().equals("نماد فارسی") && !CommonUtils.isNull(a.getValue())).reduce((a, b) -> b).get().getValue().trim();
-            String name = instrumentIds.stream().filter(a -> a.getCaption().equals("نام شرکت") && !CommonUtils.isNull(a.getValue())).reduce((a, b) -> b).get().getValue().trim();
-            String groupName = instrumentIds.stream().filter(a -> a.getCaption().equals("گروه صنعت") && !CommonUtils.isNull(a.getValue())).reduce((a, b) -> b).get().getValue().trim();
-            for (InstrumentId instrumentId : instrumentIds) {
-                instrumentId.setBourseAccount(bourseAccount);
-            }
-            InstrumentDto instrumentDto = new InstrumentDto(bourseAccount, name, groupName, link);
-            instrumentDtoMongoGenericService.add(instrumentDto);
-            for (InstrumentId instrumentId : instrumentIds) {
-                instrumentIdMongoGenericService.add(instrumentId);
+        for (Map map : maps) {
+            String link = map.get("link").toString();
+            if (instrumentDtos.stream().filter(a -> a.getInstrumentLink().equals(link)).findAny().isEmpty()) {
+                webDriver.get(link);
+                Thread.sleep(10000);
+                List<WebElement> links = webDriver.findElement(By.className("menu2")).findElements(By.tagName("a"));
+                links.stream().filter(a -> a.getAttribute("innerHTML").equals("شناسه")).findFirst().get().click();
+                Thread.sleep(10000);
+                WebElement div = webDriver.findElement(By.id("IdentityContent"));
+                WebElement table2 = div.findElement(By.className("table1"));
+                table2 = table2.findElement(By.tagName("tbody"));
+                List<WebElement> trs2 = table2.findElements(By.tagName("tr"));
+                instrumentIds = new ArrayList<>();
+                for (WebElement element2 : trs2) {
+                    String caption = element2.findElements(By.tagName("td")).get(0).getAttribute("innerHTML");
+                    String value = element2.findElements(By.tagName("td")).get(1).getAttribute("innerHTML");
+                    instrumentIds.add(new InstrumentId(null, caption, value));
+                }
+                String bourseAccount = instrumentIds.stream().filter(a -> a.getCaption().equals("نماد فارسی") && !CommonUtils.isNull(a.getValue())).reduce((a, b) -> b).get().getValue().trim();
+                String name = instrumentIds.stream().filter(a -> a.getCaption().equals("نام شرکت") && !CommonUtils.isNull(a.getValue())).reduce((a, b) -> b).get().getValue().trim();
+                String groupName = instrumentIds.stream().filter(a -> a.getCaption().equals("گروه صنعت") && !CommonUtils.isNull(a.getValue())).reduce((a, b) -> b).get().getValue().trim();
+                for (InstrumentId instrumentId : instrumentIds) {
+                    instrumentId.setBourseAccount(bourseAccount);
+                }
+                InstrumentDto instrumentDto = new InstrumentDto(bourseAccount, name, groupName, map.get("link").toString(), map.get("isdeleted").toString());
+                instrumentDtoMongoGenericService.add(instrumentDto);
+                for (InstrumentId instrumentId : instrumentIds) {
+                    instrumentIdMongoGenericService.add(instrumentId);
+                }
             }
         }
         webDriver.close();
         return instrumentIds;
+    }
+
+    @Transactional
+    public List<InstrumentData> getTradeDate(String bourseAccount, String tradDate) throws Exception {
+        Thread.sleep(5000);
+        List<Instrument> instrumentList = instrumentJPAGenericService.findAll(Instrument.class);
+        LocalDate localDate = DateUtil.getGregorianDate(tradDate);
+        List<InstrumentData> instrumentDataList = new ArrayList<>();
+        InstrumentData instrumentData = new InstrumentData();
+        String tsetmcId = instrumentList.stream().filter(a -> CommonUtils.replaceFarsiChars(a.getInstrumentName()).equals(CommonUtils.replaceFarsiChars(bourseAccount)) && a.getIsDeleted().equals(false)).findFirst().get().getTsetmsId();
+        String link = String.format("https://main.tsetmc.com/History/%s/%s", tsetmcId, localDate.getYear() + "" + (localDate.getMonthValue() < 10 ? "0" + localDate.getMonthValue() : localDate.getMonthValue()) + "" + (localDate.getDayOfMonth() < 10 ? "0" + localDate.getDayOfMonth() : localDate.getDayOfMonth()));
+        webDriver.get(link);
+        Thread.sleep(5000);
+        String status = webDriver.findElement(By.id("d01")).getAttribute("innerHTML");
+        if (!status.equals("ممنوع-متوقف")) {
+            List<WebElement> tbls = webDriver.findElements(By.tagName("table"));
+            WebElement table = webDriver.findElement(By.id("MainContent"));
+            List<WebElement> trs = table.findElements(By.tagName("tr")).subList(0, 10);
+            instrumentData.setBourseAccount(bourseAccount);
+            instrumentData.setTsetmcId(tsetmcId);
+            instrumentData.setDate(tradDate);
+            for (WebElement element : trs) {
+                if (element.findElements(By.tagName("td")).get(0).getAttribute("innerHTML").equals("آخرین معامله")) {
+                    if (element.getAttribute("innerHTML").contains("d02")) {
+                        String last = element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[2].replace(",", "");
+                        instrumentData.setLastPrice(Long.valueOf(last));
+                    }
+                }
+                if (element.findElements(By.tagName("td")).get(0).getAttribute("innerHTML").equals("قیمت پایانی")) {
+                    String finalPrice = element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[2].replace(",", "");
+                    instrumentData.setFinalPrice(Long.valueOf(finalPrice));
+                }
+                if (element.findElements(By.tagName("td")).get(0).getAttribute("innerHTML").equals("اولین قیمت")) {
+                    String firstPrice = element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[2].replace(",", "");
+                    instrumentData.setFirstPrice(Long.valueOf(firstPrice));
+                }
+                if (element.findElements(By.tagName("td")).get(0).getAttribute("innerHTML").equals("تعداد معاملات")) {
+                    String unit = element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[2].replace(",", "");
+                    instrumentData.setUnit(Long.valueOf(unit));
+                }
+                if (element.findElements(By.tagName("td")).get(0).getAttribute("innerHTML").equals("حجم معاملات")) {
+                    double volume = (double) Long.parseLong(element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[2].replace(",", "")) / 1000000;
+                    instrumentData.setVolume(volume);
+                }
+                if (element.findElements(By.tagName("td")).get(0).getAttribute("innerHTML").equals("ارزش معاملات")) {
+                    double value = (double) Long.parseLong(element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[2].replace(",", "")) / 1000000000;
+                    instrumentData.setValue(value);
+                }
+                if (element.findElements(By.tagName("td")).get(0).getAttribute("innerHTML").equals("قیمت دیروز")) {
+                    String value = element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[2].replace(",", "");
+                    instrumentData.setYesterdayPrice(Long.valueOf(value));
+                }
+                if (!element.findElements(By.id("d06")).isEmpty()) {
+                    String value = element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[2].replace(",", "");
+                    instrumentData.setMaxPrice(Long.valueOf(value));
+                }
+                if (!element.findElements(By.id("d07")).isEmpty()) {
+                    String value = element.getAttribute("innerHTML").replaceAll("(<[^>]*>)+", "#").split("#")[3].replace(",", "");
+                    instrumentData.setMinPrice(Long.valueOf(value));
+                }
+            }
+            instrumentDataList.add(instrumentData);
+            instrumentDataMongoGenericService.add(instrumentData);
+        } else {
+            System.out.println(bourseAccount+"-"+tradDate + ":" + status);
+            getTradeDate(bourseAccount, String.valueOf(DateUtil.getJalaliDate(localDate.minusDays(1))));
+        }
+        return instrumentDataList;
     }
 
 }
