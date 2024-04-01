@@ -134,7 +134,7 @@ public class TSETMCService {
                 for (WebElement element : trs) {
                     String caption = element.findElements(By.tagName("td")).get(0).getAttribute("innerHTML");
                     String value = element.findElements(By.tagName("td")).get(1).getAttribute("innerHTML");
-                    instrumentIds.add(new InstrumentId(item.getBourseAccount(), caption, value));
+                    instrumentIds.add(new InstrumentId(item.getBourseAccount(), getId(item.getInstrumentLink()), caption, value));
                 }
             } catch (Exception e) {
                 System.out.println(item.getInstrumentLink());
@@ -146,7 +146,9 @@ public class TSETMCService {
     }
 
     public static String getId(String link) {
-//        return link.split("\\?")[1].split("&")[1].split("=")[1];
+        if (link.contains("old") || link.contains("151311&i")) {
+            return link.split("\\?")[1].split("&")[1].split("=")[1];
+        }
         return link.split("instInfo/")[1];
     }
 
@@ -300,9 +302,11 @@ public class TSETMCService {
         instrumentDtos = instrumentDtoMongoGenericService.findAll(InstrumentDto.class);
         instrumentIds = instrumentIdMongoGenericService.findAll(InstrumentId.class);
         industries = industryJPAGenericService.findAll(Industry.class);
+        List<Instrument> instruments = null;
         for (InstrumentDto instrumentDto : instrumentDtos) {
-            if (instrumentList.stream().filter(a -> a.getInstrumentName().equals(instrumentDto.getBourseAccount())).findAny().isEmpty()) {
+            if (instrumentList.stream().filter(a -> a.getTsetmsId().equals(getId(instrumentDto.getInstrumentLink()))).findAny().isEmpty()) {
                 Instrument instrument = new Instrument();
+                instruments = new ArrayList<>();
                 List<InstrumentId> instrumentIdList = instrumentIds.stream().filter(a -> a.getBourseAccount().equals(instrumentDto.getBourseAccount())).toList();
                 if (instrumentIdList.isEmpty()) {
                     getInstrumentId(instrumentDto.getBourseAccount());
@@ -323,10 +327,11 @@ public class TSETMCService {
                 instrument.setIsDeleted(Boolean.valueOf(instrumentDto.getIsDeleted()));
                 String code = instrumentIdList.stream().filter(a -> a.getCaption().equals("کد گروه صنعت")).findFirst().get().getValue().trim();
                 instrument.setIndustryId(industries.stream().filter(a -> a.getCode().equals(Integer.parseInt(code))).findFirst().get().getId());
+                instruments.add(instrument);
                 instrumentJPAGenericService.insert(instrument);
             }
         }
-        return instrumentList;
+        return instruments;
     }
 
     @Transactional
@@ -389,13 +394,14 @@ public class TSETMCService {
                 for (WebElement element2 : trs2) {
                     String caption = element2.findElements(By.tagName("td")).get(0).getAttribute("innerHTML");
                     String value = element2.findElements(By.tagName("td")).get(1).getAttribute("innerHTML");
-                    instrumentIds.add(new InstrumentId(null, caption, value));
+                    instrumentIds.add(new InstrumentId(null, null, caption, value));
                 }
                 String bourseAccount = instrumentIds.stream().filter(a -> a.getCaption().equals("نماد فارسی") && !CommonUtils.isNull(a.getValue())).reduce((a, b) -> b).get().getValue().trim();
                 String name = instrumentIds.stream().filter(a -> a.getCaption().equals("نام شرکت") && !CommonUtils.isNull(a.getValue())).reduce((a, b) -> b).get().getValue().trim();
                 String groupName = instrumentIds.stream().filter(a -> a.getCaption().equals("گروه صنعت") && !CommonUtils.isNull(a.getValue())).reduce((a, b) -> b).get().getValue().trim();
                 for (InstrumentId instrumentId : instrumentIds) {
                     instrumentId.setBourseAccount(bourseAccount);
+                    instrumentId.setTsetmsId(getId(link));
                 }
                 InstrumentDto instrumentDto = new InstrumentDto(bourseAccount, name, groupName, map.get("link").toString(), map.get("isdeleted").toString());
                 instrumentDtoMongoGenericService.add(instrumentDto);
@@ -409,7 +415,7 @@ public class TSETMCService {
     }
 
     @Transactional
-    public List<InstrumentData> getTradeDate(String bourseAccount, String tradDate) throws Exception {
+    public InstrumentData getTradeDate(String bourseAccount, String tradDate) throws Exception {
         Thread.sleep(5000);
         List<Instrument> instrumentList = instrumentJPAGenericService.findAll(Instrument.class);
         LocalDate localDate = DateUtil.getGregorianDate(tradDate);
@@ -420,7 +426,10 @@ public class TSETMCService {
         webDriver.get(link);
         Thread.sleep(5000);
         String status = webDriver.findElement(By.id("d01")).getAttribute("innerHTML");
-        if (!status.equals("ممنوع-متوقف")) {
+        if (status.equals("ممنوع-متوقف")) {
+            System.out.println(bourseAccount + "-" + tradDate + ":" + status);
+            return getTradeDate(bourseAccount, DateUtil.getJalaliDate(localDate.minusDays(1)));
+        } else {
             List<WebElement> tbls = webDriver.findElements(By.tagName("table"));
             WebElement table = webDriver.findElement(By.id("MainContent"));
             List<WebElement> trs = table.findElements(By.tagName("tr")).subList(0, 10);
@@ -467,13 +476,9 @@ public class TSETMCService {
                     instrumentData.setMinPrice(Long.valueOf(value));
                 }
             }
-            instrumentDataList.add(instrumentData);
-            instrumentDataMongoGenericService.add(instrumentData);
-        } else {
-            System.out.println(bourseAccount+"-"+tradDate + ":" + status);
-            getTradeDate(bourseAccount, String.valueOf(DateUtil.getJalaliDate(localDate.minusDays(1))));
+//            instrumentDataList.add(instrumentData);
+//            instrumentDataMongoGenericService.add(instrumentData);
+            return instrumentData;
         }
-        return instrumentDataList;
     }
-
 }

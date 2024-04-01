@@ -10,16 +10,12 @@ import org.openqa.selenium.support.ui.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.webCrawler.common.CommonUtils;
-import org.webCrawler.common.DateUtil;
 import org.webCrawler.common.LettersTypes;
 import org.webCrawler.common.MeetingStatuses;
 import org.webCrawler.config.Selenium;
 import org.webCrawler.dto.*;
 import org.webCrawler.model.*;
 
-
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 
 
@@ -54,30 +50,30 @@ public class MeetingService {
     @Autowired
     TSETMCService tsetmcService;
 
+
     //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Childs=false";
     private String webUrl = "https://www.codal.ir/ReportList.aspx?search";
 //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=ومعلم";
 
-    public void setMeetingService(String date, String endDate) {
-//        this.webUrl = String.format("&FromDate=%s&ToDate=%s", date, endDate);
-        this.webUrl += String.format("&FromDate=%s&ToDate=%s", date, endDate);
-    }
+//    public void setMeetingService(String date, String endDate) {
+////        this.webUrl = String.format("&FromDate=%s&ToDate=%s", date, endDate);
+//        this.webUrl =webUrl + String.format("&FromDate=%s&ToDate=%s", date, endDate);
+//    }
 
     public MeetingService() {
     }
 
-    public List<InterimStatementDto> getInterimStatementDto(String letterType) throws Exception {
+    public List<InterimStatementDto> getInterimStatementDto(String letterType, String startDate, String endDate) throws Exception {
         InterimStatementDto interimStatementDto = new InterimStatementDto();
         List<InterimStatementDto> interimStatementDtos = new ArrayList<>();
-        this.webUrl += String.format("&LetterType=%s", letterType);
-        WebDriver webDriverMain = new Selenium().webDriver();
+        String url = webUrl + String.format("&FromDate=%s&ToDate=%s&LetterType=%s", startDate, endDate, letterType);
         Thread.sleep(10000);
-        webDriverMain.get(webUrl);
+        webDriver.get(url);
         Thread.sleep(10000);
         boolean flag = true;
         while (flag) {
             List<String> links = new ArrayList<>();
-            List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
+            List<WebElement> elements = webDriver.findElements(By.className("letter-title"));
             for (WebElement webElement : elements) {
                 links.add(webElement.getDomProperty("href"));
             }
@@ -168,7 +164,7 @@ public class MeetingService {
                 interimStatementDtos.add(interimStatementDto);
                 webDriver.close();
             }
-            WebElement li = CommonUtils.getWebElementByTitle(webDriverMain, "صفحه بعدی");
+            WebElement li = CommonUtils.getWebElementByTitle(webDriver, "صفحه بعدی");
             flag = false;
             if (!CommonUtils.isNull(li)) {
                 WebElement link = CommonUtils.getWebElement(li, "a");
@@ -180,7 +176,7 @@ public class MeetingService {
                 }
             }
         }
-        webDriverMain.close();
+        webDriver.close();
         return interimStatementDtos;
     }
 
@@ -342,18 +338,17 @@ public class MeetingService {
         return balanceSheets;
     }
 
-    public List<PriorityOrBuyShareDto> getPriorityOrBuyShare(String letterType) throws Exception {
+    public List<PriorityOrBuyShareDto> getPriorityOrBuyShare(String letterType, String startDate, String endDate) throws Exception {
         PriorityOrBuyShareDto priorityOrBuyShare = new PriorityOrBuyShareDto();
         List<PriorityOrBuyShareDto> capitalIncreaseDto = new ArrayList<>();
-        this.webUrl += String.format("&LetterType=%s", letterType);
-        WebDriver webDriverMain = new Selenium().webDriver();
+        String url = webUrl + String.format("&FromDate=%s&ToDate=%s&LetterType=%s", startDate, endDate, letterType);
         Thread.sleep(10000);
-        webDriverMain.get(webUrl);
+        webDriver.get(url);
         Thread.sleep(10000);
         boolean flag = true;
         while (flag) {
             List<String> links = new ArrayList<>();
-            List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
+            List<WebElement> elements = webDriver.findElements(By.className("letter-title"));
             for (WebElement webElement : elements) {
                 links.add(webElement.getDomProperty("href"));
             }
@@ -420,7 +415,7 @@ public class MeetingService {
                 capitalIncreaseDto.add(priorityOrBuyShare);
                 webDriver.close();
             }
-            WebElement li = CommonUtils.getWebElementByTitle(webDriverMain, "صفحه بعدی");
+            WebElement li = CommonUtils.getWebElementByTitle(webDriver, "صفحه بعدی");
             flag = false;
             if (!CommonUtils.isNull(li)) {
                 WebElement link = CommonUtils.getWebElement(li, "a");
@@ -432,20 +427,19 @@ public class MeetingService {
                 }
             }
         }
-        webDriverMain.close();
+        webDriver.close();
         return capitalIncreaseDto;
     }
 
-    public List<CapitalIncreaseDto> getCapitalIncrease(String letterType) throws Exception {
+    public List<CapitalIncreaseDto> getCapitalIncrease(String letterType, String startDate, String endDate) throws Exception {
         CapitalIncreaseDto capitalIncreaseDto = new CapitalIncreaseDto();
         List<CapitalIncreaseDto> capitalIncreaseDtos = new ArrayList<>();
-        this.webUrl += String.format("&LetterType=%s", letterType);
-        WebDriver webDriverMain = new Selenium().webDriver();
+        String url = webUrl + String.format("&FromDate=%s&ToDate=%s&LetterType=%s", startDate, endDate, letterType);
         Thread.sleep(10000);
-        webDriverMain.get(webUrl);
+        webDriver.get(url);
         Thread.sleep(10000);
         List<String> links = new ArrayList<>();
-        List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
+        List<WebElement> elements = webDriver.findElements(By.className("letter-title"));
         for (WebElement webElement : elements) {
             links.add(webElement.getDomProperty("href"));
         }
@@ -475,7 +469,7 @@ public class MeetingService {
             capitalIncreaseDtos.add(capitalIncreaseDto);
             webDriver.close();
         }
-        webDriverMain.close();
+        webDriver.close();
         return capitalIncreaseDtos;
     }
 
@@ -549,18 +543,17 @@ public class MeetingService {
         return decisionsBoards;
     }
 
-    public List<DecisionDto> getDecisionList(String letterType) throws Exception {
+    public List<DecisionDto> getDecisionList(String letterType, String startDate, String endDate) throws Exception {
         DecisionDto decisionDto = new DecisionDto();
         List<DecisionDto> decisionDtos = new ArrayList<>();
-        this.webUrl += String.format("&LetterType=%s", letterType);
-        WebDriver webDriverMain = new Selenium().webDriver();
+        String url = webUrl + String.format("&FromDate=%s&ToDate=%s&LetterType=%s", startDate, endDate, letterType);
         Thread.sleep(10000);
-        webDriverMain.get(webUrl);
+        webDriver.get(url);
         Thread.sleep(10000);
         boolean flag = true;
         while (flag) {
             List<String> links = new ArrayList<>();
-            List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
+            List<WebElement> elements = webDriver.findElements(By.className("letter-title"));
             for (WebElement webElement : elements) {
                 links.add(webElement.getDomProperty("href"));
             }
@@ -589,7 +582,7 @@ public class MeetingService {
                 decisionDtos.add(decisionDto);
                 webDriver.close();
             }
-            WebElement li = CommonUtils.getWebElementByTitle(webDriverMain, "صفحه بعدی");
+            WebElement li = CommonUtils.getWebElementByTitle(webDriver, "صفحه بعدی");
             flag = false;
             if (!CommonUtils.isNull(li)) {
                 WebElement link = CommonUtils.getWebElement(li, "a");
@@ -601,7 +594,7 @@ public class MeetingService {
                 }
             }
         }
-        webDriverMain.close();
+        webDriver.close();
         return decisionDtos;
     }
 
@@ -627,17 +620,16 @@ public class MeetingService {
         return assemblyDecisionsList;
     }
 
-    public List<ExtraAssemblyDto> getExtraAssemblyList(String letterType) throws Exception {
+    public List<ExtraAssemblyDto> getExtraAssemblyList(String letterType, String startDate, String endDate) throws Exception {
         List<ExtraAssemblyDto> extraAssemblyDtos = new ArrayList<>();
         ExtraAssemblyDto extraAssemblyDto = new ExtraAssemblyDto();
-        this.webUrl += String.format("&LetterType=%s", letterType);
-        WebDriver webDriverMain = new Selenium().webDriver();
+        String url = webUrl + String.format("&FromDate=%s&ToDate=%s&LetterType=%s", startDate, endDate, letterType);
         Thread.sleep(10000);
-        webDriverMain.get(webUrl);
+        webDriver.get(url);
         Thread.sleep(10000);
         Boolean flag = true;
         while (flag) {
-            List<WebElement> elements = webDriverMain.findElements(By.className("letter-title"));
+            List<WebElement> elements = webDriver.findElements(By.className("letter-title"));
             List<String> stringList = new ArrayList<>();
             for (WebElement webElement : elements) {
                 stringList.add(webElement.getDomProperty("href"));
@@ -667,7 +659,7 @@ public class MeetingService {
                 extraAssemblyDtos.add(extraAssemblyDto);
                 webDriver.close();
             }
-            WebElement li = CommonUtils.getWebElementByTitle(webDriverMain, "صفحه بعدی");
+            WebElement li = CommonUtils.getWebElementByTitle(webDriver, "صفحه بعدی");
             flag = false;
             if (!CommonUtils.isNull(li)) {
                 WebElement link = CommonUtils.getWebElement(li, "a");
@@ -679,7 +671,7 @@ public class MeetingService {
                 }
             }
         }
-        webDriverMain.close();
+        webDriver.close();
         return extraAssemblyDtos;
     }
 
@@ -886,20 +878,25 @@ public class MeetingService {
         List<Instrument> instrumentList = instrumentJPAGenericService.findAll(Instrument.class);
         List<ExtraAssemblyDto> extraAssemblyDtos = extraAssembly.findAll(ExtraAssemblyDto.class);
         List<CodalShareholderMeeting> codalShareholderMeetings = new ArrayList<>();
+        List<CodalShareholderMeeting> codalShareholderMeetingList = codalShareholderMeetingGenericService.findAll(CodalShareholderMeeting.class);
         StringBuilder bourseAccount = new StringBuilder();
         for (ExtraAssemblyDto extraAssemblyDto : extraAssemblyDtos) {
-            CodalShareholderMeeting codalShareholderMeeting = CommonUtils.convertTo(extraAssemblyDto, LettersTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING);
-            Optional<Instrument> instrument = instrumentList.stream().filter(a -> CommonUtils.replaceFarsiChars(a.getInstrumentName()).equals(CommonUtils.replaceFarsiChars(extraAssemblyDto.getBourseAccount()))).findFirst();
-            if (instrument.isPresent()) {
-                codalShareholderMeeting.setInstrument(instrument.get());
-                if (codalShareholderMeeting.getMeetingStatus().getId().equals(MeetingStatuses.NOT_HAVE_TABLE.getValue()) ||
-                        codalShareholderMeeting.getMeetingStatus().getId().equals(MeetingStatuses.ZERO_SHAREHOLDER_MEETING.getValue()))
-                    continue;
-                theoreticalPrice(codalShareholderMeeting);
-                codalShareholderMeetings.add(codalShareholderMeeting);
-                codalShareholderMeetingGenericService.insert(codalShareholderMeeting);
-            } else {
-                bourseAccount.append(extraAssemblyDto.getBourseAccount()).append(" ,");
+            if (!extraAssemblyDto.getBourseAccount().equals("فروژ"))
+                continue;
+            if (codalShareholderMeetingList.stream().filter(a -> CommonUtils.replaceFarsiChars(a.getBourseAccount()).equals(CommonUtils.replaceFarsiChars(extraAssemblyDto.getBourseAccount())) && a.getMeetingStatus().equals(extraAssemblyDto.getMeetingDate())).count() == 0) {
+                CodalShareholderMeeting codalShareholderMeeting = CommonUtils.convertTo(extraAssemblyDto, LettersTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING);
+                Optional<Instrument> instrument = instrumentList.stream().filter(a -> CommonUtils.replaceFarsiChars(a.getInstrumentName()).equals(CommonUtils.replaceFarsiChars(extraAssemblyDto.getBourseAccount()))).findFirst();
+                if (instrument.isPresent()) {
+                    codalShareholderMeeting.setInstrument(instrument.get());
+                    if (codalShareholderMeeting.getMeetingStatus().getId().equals(MeetingStatuses.NOT_HAVE_TABLE.getValue()) ||
+                            codalShareholderMeeting.getMeetingStatus().getId().equals(MeetingStatuses.ZERO_SHAREHOLDER_MEETING.getValue()))
+                        continue;
+                    theoreticalPrice(codalShareholderMeeting);
+                    codalShareholderMeetings.add(codalShareholderMeeting);
+                    codalShareholderMeetingGenericService.insert(codalShareholderMeeting);
+                } else {
+                    bourseAccount.append(extraAssemblyDto.getBourseAccount()).append(" ,");
+                }
             }
         }
         System.out.println("have.not.instrument: " + bourseAccount);
@@ -914,33 +911,31 @@ public class MeetingService {
         param.put("instrumentId", codalShareholderMeeting.getInstrument());
         List<InstrumentPriceDate> instrumentPriceDates = (List<InstrumentPriceDate>) instrumentPriceDateJPAGenericService.listByQuery(query, param);
         InstrumentPriceDate instrumentPriceDate = new InstrumentPriceDate();
-        List<InstrumentData> instrumentDataList = new ArrayList<>();
+        InstrumentData instrumentData = new InstrumentData();
         if (instrumentPriceDates.isEmpty()) {
-            instrumentDataList = tsetmcService.getTradeDate(codalShareholderMeeting.getBourseAccount(), String.valueOf(codalShareholderMeeting.getMeetingDate()));
-            for (InstrumentData instrumentData : instrumentDataList) {
-                instrumentPriceDate = CommonUtils.convertTo(instrumentData);
-            }
+            instrumentData = tsetmcService.getTradeDate(codalShareholderMeeting.getBourseAccount(), String.valueOf(codalShareholderMeeting.getMeetingDate()));
+            instrumentPriceDate = CommonUtils.convertTo(instrumentData);
         } else {
             instrumentPriceDate = instrumentPriceDates.get(0);
-            Long lsatDayPrice = instrumentPriceDate.getLastDayPrice();
-            Long LastTradePrice = instrumentPriceDate.getLastTradePrice();
-            Long shareProfit = 0L;
-            double giftRecapPercent = 0D;
-            double ipoRecapPercent = 0D;
-            if (codalShareholderMeeting.getShareProfit() != null) {
-                shareProfit = codalShareholderMeeting.getShareProfit();
-            }
-            if (codalShareholderMeeting.getGiftRecapPercent() != null) {
-                giftRecapPercent = codalShareholderMeeting.getGiftRecapPercent();
-            }
-            if (codalShareholderMeeting.getIpoRecapPercent() != null) {
-                ipoRecapPercent = codalShareholderMeeting.getIpoRecapPercent();
-            }
-            codalShareholderMeeting.setTheoreticalPriceLastDay((float) (((lsatDayPrice - shareProfit) + (ipoRecapPercent * 1000)) / (1 + (giftRecapPercent / 100) + (ipoRecapPercent / 100))));
-            codalShareholderMeeting.setTheoreticalPriceLastTrade((float) (((LastTradePrice - shareProfit) + (ipoRecapPercent * 1000)) / (1 + (giftRecapPercent / 100) + (ipoRecapPercent / 100))));
         }
-        System.out.println("have.not.price: " + codalShareholderMeeting.getBourseAccount());
+        Long lsatDayPrice = instrumentPriceDate.getLastDayPrice();
+        Long LastTradePrice = instrumentPriceDate.getLastTradePrice();
+        Long shareProfit = 0L;
+        double giftRecapPercent = 0D;
+        double ipoRecapPercent = 0D;
+        if (codalShareholderMeeting.getShareProfit() != null) {
+            shareProfit = codalShareholderMeeting.getShareProfit();
+        }
+        if (codalShareholderMeeting.getGiftRecapPercent() != null) {
+            giftRecapPercent = codalShareholderMeeting.getGiftRecapPercent();
+        }
+        if (codalShareholderMeeting.getIpoRecapPercent() != null) {
+            ipoRecapPercent = codalShareholderMeeting.getIpoRecapPercent();
+        }
+        codalShareholderMeeting.setTheoreticalPriceLastDay((float) (((lsatDayPrice - shareProfit) + (ipoRecapPercent * 1000)) / (1 + (giftRecapPercent / 100) + (ipoRecapPercent / 100))));
+        codalShareholderMeeting.setTheoreticalPriceLastTrade((float) (((LastTradePrice - shareProfit) + (ipoRecapPercent * 1000)) / (1 + (giftRecapPercent / 100) + (ipoRecapPercent / 100))));
     }
 }
+
 
 

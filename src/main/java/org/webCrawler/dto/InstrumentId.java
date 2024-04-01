@@ -11,6 +11,7 @@ import lombok.Setter;
 @Setter
 public class InstrumentId {
     private String bourseAccount;
+    private String tsetmsId;
     private String caption;
     private String value;
 }
