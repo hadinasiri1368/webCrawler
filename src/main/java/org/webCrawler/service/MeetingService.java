@@ -881,9 +881,7 @@ public class MeetingService {
         List<CodalShareholderMeeting> codalShareholderMeetingList = codalShareholderMeetingGenericService.findAll(CodalShareholderMeeting.class);
         StringBuilder bourseAccount = new StringBuilder();
         for (ExtraAssemblyDto extraAssemblyDto : extraAssemblyDtos) {
-            if (!extraAssemblyDto.getBourseAccount().equals("فروژ"))
-                continue;
-            if (codalShareholderMeetingList.stream().filter(a -> CommonUtils.replaceFarsiChars(a.getBourseAccount()).equals(CommonUtils.replaceFarsiChars(extraAssemblyDto.getBourseAccount())) && a.getMeetingStatus().equals(extraAssemblyDto.getMeetingDate())).count() == 0) {
+            if (codalShareholderMeetingList.stream().filter(a -> CommonUtils.replaceFarsiChars(a.getBourseAccount()).equals(CommonUtils.replaceFarsiChars(extraAssemblyDto.getBourseAccount())) && a.getMeetingDate().equals(extraAssemblyDto.getMeetingDate())).count() == 0) {
                 CodalShareholderMeeting codalShareholderMeeting = CommonUtils.convertTo(extraAssemblyDto, LettersTypes.EXTRAASSEMBLY_SAHEHOLDER_MEETING);
                 Optional<Instrument> instrument = instrumentList.stream().filter(a -> CommonUtils.replaceFarsiChars(a.getInstrumentName()).equals(CommonUtils.replaceFarsiChars(extraAssemblyDto.getBourseAccount()))).findFirst();
                 if (instrument.isPresent()) {
