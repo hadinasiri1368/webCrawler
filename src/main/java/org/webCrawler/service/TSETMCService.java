@@ -367,7 +367,7 @@ public class TSETMCService {
         for (WebElement element : trs) {
             Map<String, String> stringMap = new HashMap<>();
             String href = element.findElement(By.tagName("td")).findElement(By.tagName("a")).getDomProperty("href");
-            href = href.replace("https://old.tsetmc.com/Loader.aspx?ParTree=151311&i=", "https://tsetmc.ir/instInfo/");
+            href = href.replace("https://old.tsetmc.com/Loader.aspx?ParTree=151311&i=", "https://main.tsetmc.com/instInfo/");
             stringMap.put("link", href);
             String isDeleted = element.findElement(By.tagName("td")).findElement(By.tagName("a")).getAttribute("innerHTML");
             if (isDeleted.contains("(نماد قدیمی حذف شده)")) {

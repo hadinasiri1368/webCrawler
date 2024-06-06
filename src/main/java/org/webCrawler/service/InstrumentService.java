@@ -112,7 +112,6 @@ public class InstrumentService {
         WebElement groupList = CommonUtils.getWebElementByClass(webDriverMain, "groupList");
         if (!CommonUtils.isNull(groupList)) {
             WebElement element = groupList.findElement(By.tagName("select"));
-//            Select select = new Select(element);
             List<WebElement> allOptions = element.findElements(By.xpath(".//option"));
             for (WebElement option : allOptions) {
                 String value = option.getDomAttribute("value");
