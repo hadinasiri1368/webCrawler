@@ -50,15 +50,7 @@ public class MeetingService {
     @Autowired
     TSETMCService tsetmcService;
 
-
-    //    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Childs=false";
     private String webUrl = "https://www.codal.ir/ReportList.aspx?search";
-//    private String webUrl = "https://www.codal.ir/ReportList.aspx?search&Symbol=ومعلم";
-
-//    public void setMeetingService(String date, String endDate) {
-////        this.webUrl = String.format("&FromDate=%s&ToDate=%s", date, endDate);
-//        this.webUrl =webUrl + String.format("&FromDate=%s&ToDate=%s", date, endDate);
-//    }
 
     public MeetingService() {
     }

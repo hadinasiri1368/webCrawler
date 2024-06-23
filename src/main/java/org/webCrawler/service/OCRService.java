@@ -1,4 +1,4 @@
-package org.webCrawler.common;
+package org.webCrawler.service;
 
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;

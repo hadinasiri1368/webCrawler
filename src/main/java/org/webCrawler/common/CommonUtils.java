@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CommonUtils {
-    private static final String CHROMEDRIVER_EXE = "F:\\java\\webCrawler\\chromedriver-win64\\chromedriver.exe";
+    private static final String CHROMEDRIVER_EXE = "D:\\java\\webCrawler\\chromedriver-win64\\chromedriver.exe";
 
     public static String findFile() {
         try {
@@ -385,5 +385,12 @@ public class CommonUtils {
         return codalShareholderMeeting;
     }
 
+    public static void checkInputData(String startDate, String endDate) throws Exception {
+        LocalDate fromDate = DateUtil.getGregorianDate(startDate);
+        if (CommonUtils.isNull(fromDate)) throw new RuntimeException("start.date.not.valid");
+        LocalDate toDate = DateUtil.getGregorianDate(endDate);
+        if (CommonUtils.isNull(toDate)) throw new RuntimeException("end.date.not.valid");
+        if (startDate.compareTo(endDate) > 0) throw new RuntimeException("start.date.must.bigger.than.end.date");
+    }
 }
 
